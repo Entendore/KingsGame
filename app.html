@@ -1,0 +1,3339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="The Weight of the Crown — a procedurally generated chronicle of decisions, petitions, plots and dynasties.">
+  <meta name="theme-color" content="#171009">
+  <meta name="color-scheme" content="dark">
+  <title>The Weight of the Crown</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23171009'/%3E%3Cpath d='M6 22V12l5 4 5-8 5 8 5-4v10z' fill='%23a4762c' stroke='%232a2018'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --parch: #eae0c3;
+      --parch2: #e0d3ae;
+      --ink: #2a2018;
+      --ox: #8e2f21;
+      --desk: #171009;
+      --desk-text: #d8cba8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      overscroll-behavior-y: contain;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--desk);
+      color: var(--desk-text);
+      font-family: 'IM Fell English', serif;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(1100px 700px at 50% 26%, rgba(255, 214, 140, .07), transparent 62%),
+        radial-gradient(140% 110% at 50% 45%, transparent 55%, rgba(0, 0, 0, .6) 100%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: .5;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.06'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    #app {
+      position: relative;
+      z-index: 2;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 14px calc(60px + env(safe-area-inset-bottom, 0px));
+    }
+
+    main {
+      position: relative;
+    }
+
+    main::before {
+      content: attr(data-letter);
+      position: fixed;
+      left: 50%;
+      top: 54%;
+      transform: translate(-50%, -50%);
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 46vmin;
+      color: rgba(233, 223, 198, .045);
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 18px 4px 10px;
+    }
+
+    .king {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .kingP {
+      width: 58px;
+      height: 68px;
+      flex: none;
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .5));
+    }
+
+    .kingP svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .kname {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 1.35rem;
+      color: #e6d9b4;
+      line-height: 1.1;
+    }
+
+    .kyear {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .78rem;
+      letter-spacing: .14em;
+      color: #b7a97f;
+      margin-top: 2px;
+    }
+
+    .kseason {
+      font-style: italic;
+      font-size: .8rem;
+      color: #93855f;
+      margin-top: 1px;
+    }
+
+    .kfam {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .66rem;
+      letter-spacing: .1em;
+      color: #8d7f5c;
+      margin-top: 3px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stat {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 62px;
+    }
+
+    .stat .sigil {
+      width: 22px;
+      height: 22px;
+      color: var(--desk-text);
+      margin-bottom: 5px;
+    }
+
+    .stat.low .sigil,
+    .stat.high .sigil {
+      color: #c05a44;
+    }
+
+    .stat .bar {
+      width: 54px;
+      height: 7px;
+      background: rgba(233, 223, 198, .16);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .stat .bar i {
+      display: block;
+      height: 100%;
+      background: #c9b27a;
+      transition: width .5s ease;
+    }
+
+    .stat.low .bar i,
+    .stat.high .bar i {
+      background: #a6402e;
+    }
+
+    .stat .slabel {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .6rem;
+      letter-spacing: .16em;
+      color: #9d8f6b;
+      margin-top: 5px;
+    }
+
+    .pip {
+      position: absolute;
+      top: -6px;
+      right: 2px;
+      font-size: .8rem;
+      font-weight: bold;
+      animation: pipUp .95s ease forwards;
+      pointer-events: none;
+    }
+
+    .pip.good {
+      color: #d8b25e;
+    }
+
+    .pip.bad {
+      color: #c05a44;
+    }
+
+    @keyframes pipUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      25% {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(-16px);
+      }
+    }
+
+    .tools {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tools button {
+      background: none;
+      border: none;
+      color: #b7a97f;
+      cursor: pointer;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .8rem;
+      letter-spacing: .1em;
+      padding: 6px 4px;
+      border-bottom: 1px solid transparent;
+      touch-action: manipulation;
+    }
+
+    .tools button:hover {
+      color: #e6d9b4;
+      border-bottom-color: #8e2f21;
+    }
+
+    #scribeLine {
+      text-align: center;
+      font-style: italic;
+      font-size: .8rem;
+      color: #93855f;
+      margin: -2px 0 10px;
+      min-height: 1.1em;
+    }
+
+    #cardWrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 30px;
+      touch-action: none;
+      z-index: 2;
+    }
+
+    #card {
+      position: relative;
+      width: min(620px, 96vw);
+      min-height: 400px;
+      background: var(--parch);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+      color: var(--ink);
+      padding: 2.1rem 2.3rem 1.9rem;
+      border: 1px solid #40301f;
+      box-shadow: 0 26px 55px rgba(0, 0, 0, .6);
+      transform: rotate(var(--tilt, 0deg));
+      transition: transform .4s cubic-bezier(.2, .85, .3, 1.15);
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    #card.canGrab {
+      cursor: grab;
+    }
+
+    #card.drag {
+      transition: none;
+      cursor: grabbing;
+    }
+
+    #card::before {
+      content: '';
+      position: absolute;
+      inset: 9px;
+      border: 1px solid rgba(42, 32, 24, .45);
+      pointer-events: none;
+    }
+
+    #card.deal {
+      animation: settle .5s cubic-bezier(.2, .85, .3, 1.15);
+    }
+
+    @keyframes settle {
+      from {
+        transform: translateY(18px) rotate(var(--tilt, 0deg));
+        opacity: 0;
+      }
+    }
+
+    .corner {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      pointer-events: none;
+      color: rgba(42, 32, 24, .65);
+    }
+
+    .corner svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .corner.tl {
+      top: 4px;
+      left: 4px;
+    }
+
+    .corner.tr {
+      top: 4px;
+      right: 4px;
+      transform: scaleX(-1);
+    }
+
+    .corner.bl {
+      bottom: 4px;
+      left: 4px;
+      transform: scaleY(-1);
+    }
+
+    .corner.br {
+      bottom: 4px;
+      right: 4px;
+      transform: scale(-1);
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .72rem;
+      letter-spacing: .2em;
+      color: var(--ox);
+      margin-bottom: 1.1rem;
+      text-align: center;
+    }
+
+    .kicker::before,
+    .kicker::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: rgba(142, 47, 33, .4);
+    }
+
+    .who {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 1.15rem;
+    }
+
+    .pframe {
+      width: 88px;
+      height: 104px;
+      flex: none;
+      filter: drop-shadow(1px 2px 2px rgba(42, 32, 24, .3));
+    }
+
+    .pframe svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .whoText h2 {
+      font-family: 'IM Fell English', serif;
+      font-size: 1.45rem;
+      font-weight: normal;
+      line-height: 1.1;
+    }
+
+    .ptitle {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      color: #6b5a3e;
+      margin-top: 5px;
+    }
+
+    .speech {
+      font-size: 1.05rem;
+      line-height: 1.62;
+      min-height: 5.2em;
+    }
+
+    .speech::first-letter {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 2.7em;
+      float: left;
+      line-height: .78;
+      padding: .06em .1em 0 0;
+      color: var(--ox);
+    }
+
+    .choices {
+      margin-top: 1.25rem;
+      border-top: 1px solid rgba(42, 32, 24, .4);
+    }
+
+    .choice {
+      display: flex;
+      gap: .85rem;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(42, 32, 24, .4);
+      padding: 1rem .3rem;
+      font: inherit;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background .15s;
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+
+    .choice:hover {
+      background: rgba(42, 32, 24, .05);
+    }
+
+    .choice .seal {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      flex: none;
+      margin-top: 5px;
+      background: var(--ox);
+      box-shadow: inset -2px -3px 4px rgba(0, 0, 0, .4), inset 2px 2px 3px rgba(255, 255, 255, .28);
+      opacity: .8;
+      transition: transform .16s;
+    }
+
+    .choice:hover .seal {
+      transform: scale(1.3);
+    }
+
+    .clabel {
+      font-family: 'IM Fell English', serif;
+      font-size: 1.08rem;
+      line-height: 1.35;
+    }
+
+    .outcome {
+      margin-top: 1.25rem;
+    }
+
+    .outcome .rule {
+      height: 1px;
+      background: rgba(142, 47, 33, .5);
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .outcome .rule::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: -3px;
+      width: 7px;
+      height: 7px;
+      background: var(--ox);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    #outText {
+      font-style: italic;
+      font-size: 1.04rem;
+      line-height: 1.6;
+    }
+
+    #outText::first-letter {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 2.7em;
+      float: left;
+      line-height: .78;
+      padding: .06em .1em 0 0;
+      color: var(--ox);
+    }
+
+    .cont {
+      display: inline-block;
+      margin-top: 1.1rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .92rem;
+      letter-spacing: .12em;
+      color: var(--ox);
+      padding: 6px 2px;
+      touch-action: manipulation;
+    }
+
+    .cont::after {
+      content: '→';
+      margin-left: .45rem;
+      display: inline-block;
+      transition: transform .15s;
+    }
+
+    .cont:hover::after {
+      transform: translateX(5px);
+    }
+
+    #ghost {
+      position: absolute;
+      top: 36%;
+      max-width: 150px;
+      padding: .55rem .8rem;
+      font-family: 'IM Fell English', serif;
+      font-size: .85rem;
+      line-height: 1.3;
+      background: var(--parch);
+      color: var(--ink);
+      border: 1px solid var(--ink);
+      box-shadow: 3px 4px 0 rgba(0, 0, 0, .4);
+      opacity: 0;
+      transition: opacity .12s;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    #ghost.show {
+      opacity: 1;
+    }
+
+    .panel {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: min(440px, 94vw);
+      z-index: 30;
+      background: var(--parch2);
+      color: var(--ink);
+      box-shadow: 0 0 40px rgba(0, 0, 0, .55);
+      padding: 2rem 1.8rem;
+      overflow-y: auto;
+      transition: transform .35s ease;
+      overscroll-behavior: contain;
+    }
+
+    .panel.right {
+      right: 0;
+      border-left: 1px solid #40301f;
+      transform: translateX(105%);
+    }
+
+    .panel.left {
+      left: 0;
+      border-right: 1px solid #40301f;
+      transform: translateX(-105%);
+    }
+
+    .panel.open {
+      transform: translateX(0);
+    }
+
+    .panel h3 {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-weight: normal;
+      font-size: 1.7rem;
+      margin-bottom: .4rem;
+    }
+
+    .panel .sub {
+      font-style: italic;
+      color: #6b5a3e;
+      font-size: .9rem;
+      margin-bottom: 1rem;
+    }
+
+    .sideTab {
+      position: fixed;
+      top: 46%;
+      z-index: 25;
+      writing-mode: vertical-rl;
+      background: var(--parch);
+      color: var(--ink);
+      border: 1px solid #40301f;
+      padding: 14px 7px;
+      font-family: 'IM Fell English SC', serif;
+      letter-spacing: .18em;
+      font-size: .78rem;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .4);
+      touch-action: manipulation;
+    }
+
+    #chronTab {
+      right: 0;
+      border-right: none;
+      box-shadow: -3px 3px 8px rgba(0, 0, 0, .4);
+    }
+
+    #realmTab {
+      left: 0;
+      border-left: none;
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, .4);
+    }
+
+    .sideTab:hover {
+      color: var(--ox);
+    }
+
+    #chronList .cy {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 1.15rem;
+      color: var(--ox);
+      margin: 1rem 0 .25rem;
+    }
+
+    #chronList .ce {
+      font-size: .94rem;
+      line-height: 1.5;
+      padding-left: 1.1rem;
+      position: relative;
+      margin-bottom: .3rem;
+    }
+
+    #chronList .ce::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: rgba(42, 32, 24, .45);
+    }
+
+    #chronList .aside {
+      font-style: italic;
+      color: #8a6d2f;
+      font-size: .85rem;
+    }
+
+    .chronNote {
+      font-style: italic;
+      color: #8a6d2f;
+      font-size: .85rem;
+      margin: .8rem 0;
+    }
+
+    #mapBox svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .maplb {
+      font-size: 10px;
+      fill: rgba(42, 32, 24, .78);
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+    }
+
+    .mapcap {
+      font-size: 9.5px;
+      fill: rgba(42, 32, 24, .85);
+      font-family: 'IM Fell English SC', serif;
+      letter-spacing: 2px;
+    }
+
+    .maptitle {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 22px;
+      fill: rgba(42, 32, 24, .5);
+    }
+
+    .mapsea {
+      font-size: 11px;
+      fill: rgba(42, 32, 24, .5);
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+    }
+
+    #wonderLine {
+      font-size: .85rem;
+      font-style: italic;
+      color: #6b5a3e;
+      margin-top: .8rem;
+      line-height: 1.45;
+    }
+
+    .veil {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10, 6, 3, .74);
+      padding: 18px;
+      transition: opacity .35s;
+    }
+
+    .veil[hidden] {
+      display: none;
+    }
+
+    .sheet {
+      width: min(680px, 94vw);
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--parch);
+      overscroll-behavior: contain;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+      color: var(--ink);
+      border: 1px solid #40301f;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .7);
+      padding: 2.6rem 2.7rem 2.3rem;
+      position: relative;
+    }
+
+    .sheet::before {
+      content: '';
+      position: absolute;
+      inset: 9px;
+      border: 1px solid rgba(42, 32, 24, .45);
+      pointer-events: none;
+    }
+
+    .bTitle {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-weight: normal;
+      text-align: center;
+      font-size: 2.5rem;
+      line-height: 1.05;
+      margin-bottom: .4rem;
+    }
+
+    .ornament {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      margin: 1rem 0 1.3rem;
+    }
+
+    .ornament::before,
+    .ornament::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: rgba(142, 47, 33, .5);
+    }
+
+    .ornament i {
+      width: 8px;
+      height: 8px;
+      background: var(--ox);
+      transform: rotate(45deg);
+    }
+
+    .proText {
+      font-size: 1.06rem;
+      line-height: 1.65;
+    }
+
+    .proProp {
+      font-style: italic;
+      text-align: center;
+      color: #6b5a3e;
+      border: 1px solid rgba(142, 47, 33, .4);
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+    }
+
+    .proHint {
+      font-style: italic;
+      text-align: center;
+      color: #6b5a3e;
+      margin-top: 1.2rem;
+      font-size: .95rem;
+    }
+
+    .centerRow {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 1.6rem;
+    }
+
+    .bigBtn {
+      font-family: 'IM Fell English SC', serif;
+      letter-spacing: .14em;
+      font-size: 1.05rem;
+      background: var(--ox);
+      color: #f0e6cd;
+      border: 1px solid #5e1e13;
+      padding: .8rem 2.1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #5e1e13, inset 0 1px 0 rgba(255, 255, 255, .2);
+      transition: transform .1s, box-shadow .1s;
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+
+    .bigBtn:hover {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #5e1e13;
+    }
+
+    .bigBtn.ghostBtn {
+      background: #6b5a3e;
+      border-color: #3f3222;
+      box-shadow: 0 4px 0 #3f3222;
+    }
+
+    .tiny {
+      display: block;
+      text-align: center;
+      margin-top: 1.4rem;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .68rem;
+      letter-spacing: .18em;
+      color: #93855f;
+    }
+
+    .dropcap::first-letter {
+      font-family: 'UnifrakturMaguntia', serif;
+      font-size: 3.2em;
+      float: left;
+      line-height: .8;
+      padding: .04em .12em 0 0;
+      color: var(--ox);
+    }
+
+    .led {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px dotted rgba(42, 32, 24, .35);
+      padding: .32rem 0;
+      font-size: .98rem;
+    }
+
+    .led b {
+      font-weight: normal;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .85rem;
+      letter-spacing: .08em;
+      color: #6b5a3e;
+    }
+
+    .yeMove {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .85rem;
+      letter-spacing: .1em;
+      color: #6b5a3e;
+      margin: 1.2rem 0 .4rem;
+    }
+
+    .yeClose {
+      font-style: italic;
+      color: #6b5a3e;
+      margin-top: .6rem;
+    }
+
+    .mStats {
+      display: flex;
+      gap: 22px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1.2rem 0;
+    }
+
+    .mStats .stat {
+      width: 62px;
+    }
+
+    .mStats .sigil {
+      color: var(--ink);
+    }
+
+    .mStats .bar {
+      background: rgba(42, 32, 24, .18);
+    }
+
+    .mStats .bar i {
+      background: var(--ink);
+    }
+
+    .mStats .slabel {
+      color: #6b5a3e;
+    }
+
+    .mrow {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+      align-items: center;
+      font-family: 'IM Fell English SC', serif;
+      font-size: .85rem;
+      letter-spacing: .1em;
+      color: #6b5a3e;
+      margin-top: .8rem;
+      text-align: center;
+    }
+
+    .scens {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1.1rem 0 .2rem;
+    }
+
+    .scen {
+      flex: 1 1 170px;
+      background: rgba(142, 47, 33, .06);
+      border: 1px solid rgba(142, 47, 33, .45);
+      padding: .75rem .8rem;
+      cursor: pointer;
+      font: inherit;
+      color: var(--ink);
+      text-align: center;
+      transition: background .15s, box-shadow .15s;
+      touch-action: manipulation;
+    }
+
+    .scen:hover {
+      background: rgba(142, 47, 33, .11);
+    }
+
+    .scen.sel {
+      background: rgba(142, 47, 33, .15);
+      box-shadow: inset 0 0 0 1.5px var(--ox);
+    }
+
+    .scen b {
+      display: block;
+      font-family: 'IM Fell English SC', serif;
+      font-weight: normal;
+      letter-spacing: .08em;
+      font-size: .88rem;
+      color: var(--ox);
+      margin-bottom: .3rem;
+    }
+
+    .scen span {
+      font-size: .8rem;
+      font-style: italic;
+      color: #6b5a3e;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .scenMod {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      color: #2a2018;
+      opacity: .7;
+      margin-top: .3rem;
+      display: block;
+    }
+
+    .face {
+      display: flex;
+      gap: .9rem;
+      padding: .75rem 0;
+      border-bottom: 1px dotted rgba(42, 32, 24, .35);
+    }
+
+    .face .fp {
+      width: 52px;
+      height: 62px;
+      flex: none;
+      filter: drop-shadow(1px 1px 1px rgba(42, 32, 24, .25));
+    }
+
+    .face .fp svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .face b {
+      font-weight: normal;
+      font-size: 1.05rem;
+    }
+
+    .ftr {
+      font-family: 'IM Fell English SC', serif;
+      font-size: .68rem;
+      letter-spacing: .1em;
+      color: #6b5a3e;
+    }
+
+    .fe {
+      font-size: .82rem;
+      font-style: italic;
+      color: #6b5a3e;
+      margin-top: .3rem;
+      line-height: 1.4;
+    }
+
+    .toast {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      background: var(--parch);
+      color: var(--ink);
+      border: 1px solid #40301f;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, .55);
+      padding: .7rem 1rem;
+      max-width: 300px;
+      animation: tIn .35s ease;
+    }
+
+    .toast .tseal {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--ox);
+      flex: none;
+      box-shadow: inset -2px -3px 4px rgba(0, 0, 0, .4), inset 2px 2px 3px rgba(255, 255, 255, .28);
+    }
+
+    .toast b {
+      display: block;
+      font-family: 'IM Fell English SC', serif;
+      font-weight: normal;
+      font-size: .8rem;
+      letter-spacing: .1em;
+      color: var(--ox);
+    }
+
+    .toast span {
+      font-size: .88rem;
+      line-height: 1.25;
+      display: block;
+    }
+
+    .toast.out {
+      animation: tOut .4s ease forwards;
+    }
+
+    @keyframes tIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+    }
+
+    @keyframes tOut {
+      to {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
+
+    :focus-visible {
+      outline: 2px dashed var(--ox);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media (max-width:640px) {
+      #card {
+        padding: 1.6rem 1.3rem 1.5rem;
+      }
+
+      .bTitle {
+        font-size: 1.9rem;
+      }
+
+      .sheet {
+        padding: 1.8rem 1.4rem;
+      }
+
+      header {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .king {
+        flex-direction: column;
+        gap: 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <div
+      style="max-width:560px;margin:4rem auto;padding:2rem;background:#eae0c3;color:#2a2018;border:1px solid #40301f;font-family:Georgia,serif;text-align:center;">
+      <h1 style="font-size:1.4rem;margin-bottom:.6rem;">The Weight of the Crown</h1>
+      <p>This chronicle is set in motion by script, and your browser has it quilled shut. Please enable JavaScript to
+        take the throne.</p>
+    </div>
+  </noscript>
+
+  <div id="app">
+    <header>
+      <div class="king">
+        <div class="kingP" id="kingP" aria-hidden="true"></div>
+        <div>
+          <div class="kname" id="kName"></div>
+          <div class="kyear" id="kYear"></div>
+          <div class="kseason" id="kSeason"></div>
+          <div class="kfam" id="kFam"></div>
+        </div>
+      </div>
+      <div class="stats" id="statRow" aria-label="Realm statistics"></div>
+      <div class="tools">
+        <button id="btnRealm" type="button">Realm</button>
+        <button id="btnCourt" type="button">Court</button>
+        <button id="btnChron" type="button">Chronicle</button>
+        <button id="btnSound" type="button" aria-pressed="true">Sound · on</button>
+      </div>
+    </header>
+    <div id="scribeLine" aria-live="polite"></div>
+
+    <main id="mainArea" data-letter="V">
+      <div id="cardWrap">
+        <article id="card" aria-label="Petition before the crown">
+          <div class="corner tl" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M2,38 V12 Q2,2 12,2 H38" />
+              <path d="M9,38 V17 Q9,9 17,9 H38" stroke-width="1.2" />
+            </svg></div>
+          <div class="corner tr" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M2,38 V12 Q2,2 12,2 H38" />
+              <path d="M9,38 V17 Q9,9 17,9 H38" stroke-width="1.2" />
+            </svg></div>
+          <div class="corner bl" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M2,38 V12 Q2,2 12,2 H38" />
+              <path d="M9,38 V17 Q9,9 17,9 H38" stroke-width="1.2" />
+            </svg></div>
+          <div class="corner br" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M2,38 V12 Q2,2 12,2 H38" />
+              <path d="M9,38 V17 Q9,9 17,9 H38" stroke-width="1.2" />
+            </svg></div>
+          <div class="kicker" id="kicker"></div>
+          <div class="who">
+            <div class="pframe" id="pframe" aria-hidden="true"></div>
+            <div class="whoText">
+              <h2 id="pname"></h2>
+              <div class="ptitle" id="ptitle"></div>
+            </div>
+          </div>
+          <p class="speech" id="speech"></p>
+          <div class="choices" id="choices" role="group" aria-label="Decrees"></div>
+          <div class="outcome" id="outcome" aria-live="polite" hidden>
+            <div class="rule" aria-hidden="true"></div>
+            <p id="outText"></p>
+            <button class="cont" id="cont" type="button">So it is written</button>
+          </div>
+        </article>
+        <div id="ghost" aria-hidden="true"></div>
+      </div>
+    </main>
+  </div>
+
+  <button id="realmTab" class="sideTab" type="button" aria-label="Open the realm map">The Realm</button>
+  <button id="chronTab" class="sideTab" type="button" aria-label="Open the chronicle">Chronicle</button>
+
+  <aside id="realmP" class="panel left" role="dialog" aria-label="The Realm">
+    <h3>The Realm</h3>
+    <div class="sub">as the scribe maps it, from petitioners' tales</div>
+    <div id="mapBox"></div>
+    <div id="wonderLine"></div>
+    <div class="centerRow"><button class="cont" id="realmClose" type="button">Fold the map</button></div>
+  </aside>
+
+  <aside id="chronicle" class="panel right" role="dialog" aria-label="The Chronicle">
+    <h3>The Chronicle</h3>
+    <div class="sub">kept by the scribe of the hall, who misses nothing</div>
+    <div id="chronList"></div>
+    <div class="centerRow">
+      <button class="cont" id="chronCopy" type="button">Copy the chronicle</button>
+      <button class="cont" id="chronClose" type="button">Close the book</button>
+    </div>
+  </aside>
+
+  <div class="veil" id="prologue" role="dialog" aria-modal="true" aria-labelledby="proTitle">
+    <div class="sheet">
+      <h1 class="bTitle" id="proTitle">The Weight<br>of the Crown</h1>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="proText" id="proText"></p>
+      <div class="scens" id="scens" role="group" aria-label="Accession scenarios"></div>
+      <div class="proProp" id="proProp"></div>
+      <p class="proHint">Decree by click or keys (1 · 2), or drag the page either way.<br>R — the realm map · F — the
+        book of faces · C — the chronicle.<br>The scribe is watching. So is the cloister. So, quietly, is everyone else.
+      </p>
+      <div class="centerRow">
+        <button class="bigBtn" id="btnStart" type="button">Take the Throne</button>
+        <button class="bigBtn ghostBtn" id="btnContinue" type="button" hidden>Continue the Reign</button>
+      </div>
+      <span class="tiny" id="writNo"></span>
+    </div>
+  </div>
+
+  <div class="veil" id="court" role="dialog" aria-modal="true" aria-labelledby="courtTitle" hidden>
+    <div class="sheet">
+      <h2 class="bTitle" id="courtTitle" style="font-size:1.8rem">The Book of Faces</h2>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="proHint" style="margin-top:0">every face the crown has judged, and what it earned</p>
+      <div id="courtList"></div>
+      <div class="centerRow"><button class="bigBtn ghostBtn" id="courtClose" type="button"
+          style="font-size:.9rem; padding:.6rem 1.4rem">Close the book</button></div>
+    </div>
+  </div>
+
+  <div class="veil" id="yearEnd" role="dialog" aria-modal="true" aria-labelledby="yeTitle" hidden>
+    <div class="sheet">
+      <h2 class="bTitle" id="yeTitle" style="font-size:2rem"></h2>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="dropcap" id="yeLead"></p>
+      <div id="yeItems" style="margin-top:1rem"></div>
+      <div class="yeMove" id="yeMove"></div>
+      <p class="yeClose" id="yeClose"></p>
+      <div class="centerRow"><button class="bigBtn" id="btnYear" type="button">Let the year turn</button></div>
+    </div>
+  </div>
+
+  <div class="veil" id="memorial" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+    <div class="sheet">
+      <p style="text-align:center" class="ptitle" id="mKicker"></p>
+      <h2 class="bTitle" id="mTitle" style="font-size:2.1rem"></h2>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="proText" id="mCause" style="text-align:left"></p>
+      <div class="mStats" id="mStats"></div>
+      <div class="mrow" id="mRow"></div>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="ptitle" style="text-align:center; margin-bottom:.5rem">FROM THE CHRONICLE</p>
+      <div id="mChron"></div>
+      <div class="centerRow"><button class="bigBtn" id="btnAgain" type="button">Begin a New Dynasty</button></div>
+    </div>
+  </div>
+
+  <div class="veil" id="errVeil" role="alertdialog" aria-modal="true" aria-labelledby="errTitle" hidden>
+    <div class="sheet">
+      <p style="text-align:center" class="ptitle">THE SCRIPTORIUM REGRETS</p>
+      <h2 class="bTitle" id="errTitle" style="font-size:2rem">The Scribe Has<br>Dropped His Pen</h2>
+      <div class="ornament" aria-hidden="true"><i></i></div>
+      <p class="proText" id="errText"></p>
+      <div class="centerRow">
+        <button class="bigBtn" id="errDismiss" type="button">Take up the pen</button>
+        <button class="bigBtn ghostBtn" id="errReload" type="button">Reload the hall</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+      /* ================================================================
+         THE WEIGHT OF THE CROWN — a procedural chronicle (v4, hardened)
+         ----------------------------------------------------------------
+         Architecture map:
+           §1 config & utilities      §6 portraits & sigils
+           §2 data pools              §7 realm map
+           §3 event templates (TPL)   §8 procedural audio
+           §4 meta tables             §9 core loop (guarded)
+           §5 state, save system      §10 render · §11 input · §12 init
+         Event fx contract — a choice's fx() may return:
+           { d:{stat:delta}, st:±n, anger:n, th:[{tpl,delay,actor?}],
+             chron:string, flag:{...}, spouse:{...}, heirName:string,
+             karma:'mercy'|'iron'|'gold'|'god', mk:{i,at?,dx?,dy?},
+             wonderStart:1, end:'endingKey' }
+         ================================================================ */
+
+      /* ============ §1 CONFIG & UTILITIES ============ */
+      const VERSION = '4.0.0';
+      const SAVE_KEY = 'woc_save', LEGACY_KEY = 'woc_legacy', SAVE_VERSION = 3;
+      const MAX_CHARS = 48, MAX_THREADS = 14, CHRON_RENDER_CAP = 220, HIST_CAP = 30;
+      const STATS = [ 'gold', 'folk', 'faith', 'army' ];
+      const STATNAMES = { gold: 'Treasury', folk: 'Folk', faith: 'Church', army: 'Army' };
+
+      const $ = id => document.getElementById(id);
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ]));
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+      let _s = 1;
+      function srand(x) { _s = (x >>> 0) || 1; }
+      function rnd() { _s = (_s + 0x6D2B79F5) >>> 0; let t = _s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+      const ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+      const pick = a => a[ Math.floor(rnd() * a.length) ];
+      function mkRng(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+      const pk = (r, a) => a[ Math.floor(r() * a.length) ];
+      function hsh(s) { let h = 0; for (let i = 0; i < s.length; i++)h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+      function rom(n) { const t = [ [ 40, 'XL' ], [ 10, 'X' ], [ 9, 'IX' ], [ 5, 'V' ], [ 4, 'IV' ], [ 1, 'I' ] ]; let r = ''; for (const [ v, s ] of t) { while (n >= v) { r += s; n -= v; } } return r || 'I'; }
+
+      /* ============ §2 DATA POOLS ============ */
+      const NAMES = {
+        peasant: [ 'Oswic', 'Hodge', 'Mabel', 'Eda', 'Cenric', 'Godgifu', 'Tatwine', 'Aldith', 'Dunstan', 'Hild', 'Bran', 'Saethryth' ],
+        merchant: [ 'Dietrich', 'Berta', 'Ivo', 'Aliza', 'Falk', 'Odila', 'Renier', 'Sibbe', 'Godfrey', 'Maudlin' ],
+        noble: [ 'Lady Rowena', 'Lord Osric', 'Lady Emeline', 'Lord Theobald', 'Sir Ansel', 'Lady Ysolt', 'Lord Corbin', 'Lady Aveline' ],
+        priest: [ 'Brother Aelric', 'Abbot Caedmon', 'Sister Osgyth', 'Prior Benedict', 'Mother Wenfleda', 'Brother Anselm' ],
+        soldier: [ 'Serjeant Grimbold', 'Captain Hale', 'Marlow Shieldhand', 'Alvar of the Wall', 'Serjeant Odger' ],
+        witch: [ 'Granny Thistle', 'Old Nan Rook', 'Maud of the Mere', 'Wisewoman Aldera', 'Wisewoman Erne' ],
+        minstrel: [ 'Pip the Lark', 'Jocelin of the Fiddle', 'Dulcibelle', 'Rombald the Rhymer' ],
+        orphan: [ 'Wren', 'Sparrow', 'Tatty', 'Finch', 'Noll' ],
+        bandit: [ 'Cutter Vane', 'Red Murdac', 'Sly Osbert', 'The Fox of Fenn', 'Long Hariot' ],
+        knight: [ 'Ser Vane', 'Ser Aumont', 'Ser Guibert', 'Ser Otteline', 'Ser Bertram' ]
+      };
+      const KFIRST = [ 'Aldric', 'Edmund', 'Cassian', 'Roderic', 'Berengar', 'Leofric', 'Osric', 'Magnus', 'Theobald', 'Fenric' ];
+      const KNUM = [ 'II', 'III', 'IV', 'II', 'III' ];
+      const HOUSES = [ 'House Corvane', 'House Verelay', 'House Ashgrove', 'House Dunmore', 'House Mallow', 'House Vane' ];
+      const KINGDOMS = [ 'Vaelmoor', 'Thornwick', 'Carvel', 'Ashvale', 'Morvane' ];
+      const VILLAGES = [ 'Thistlefen', 'Marrowdale', 'Nether Hopping', 'Ashcombe', 'Wormsley', 'Fennmarsh', 'Elderbrook', 'Stanhollow', 'Crowmere', 'Little Dewhurst' ];
+      const TRAITS = [ 'greedy', 'pious', 'wrathful', 'cunning', 'loyal', 'desperate', 'proud', 'kind' ];
+      const TITLES = {
+        peasant: a => 'a peasant of ' + a.home, merchant: () => 'a merchant of the river guilds', noble: () => 'of the court',
+        priest: () => 'of the cloister', soldier: () => 'of the garrison', witch: () => 'a wisewoman of the hedgerows',
+        minstrel: () => 'a singer of uncertain address', orphan: () => 'a child of the roads', bandit: () => 'a thief of the ford roads',
+        knight: () => 'a knight of the realm'
+      };
+      const KICKERS = [ 'At morning court', 'Before the high seat', 'In the evening council', 'At the hall door', 'From the privy chamber', 'At the Michaelmas court' ];
+      const SEASONS = [ { n: 'Spring', f: [ 'The thaw muddies the roads.', 'Lambs in the home fields, mud everywhere else.', 'The river runs high with snow-water.' ] },
+      { n: 'Summer', f: [ 'Heat lies on the mere like a lid.', 'The hay stands waist-high and impatient.', 'The roads are dust to the axle.' ] },
+      { n: 'Autumn', f: [ 'The rye comes in gold.', 'Smoke from the kilns, coin from the fairs.', 'The geese go over, loud and punctual.' ] },
+      { n: 'Winter', f: [ 'Frost ferns on the hall glass.', 'The river wears ice; the mills complain.', 'The wolves come nearer than is polite.' ] } ];
+      function V() { return pick(VILLAGES); }
+      function vreg() { const n = V(); regV(n); return n; }
+      function sV(s) { s.lastV = vreg(); return s.lastV; }
+
+      /* ============ §3 EVENT TEMPLATES ============ */
+      const TPL = []; function T(o) { TPL.push(o); }
+      const TPLMAP = {};
+
+      /* ---------- petitions ---------- */
+      T({
+        id: 'grain', cat: 'base', who: [ 'peasant' ], cond: s => s.stats.folk < 68,
+        text: s => `The rye rotted in the wet fields of ${sV(s)} and the grain-boxes are scraped to the nails. "Two of four children buried since Lammas," the reeve says, hat in hand, "and the village asks bread of its king. It will not ask twice."`,
+        choices: [
+          {
+            label: 'Open the royal granaries',
+            out: (s, a) => a.trait === 'greedy' ? `${a.name} takes rather more than a share, and word of the king's open hand travels through three parishes by Sunday.` : `${a.name} weeps onto the flagstones, and that evening the ovens burn late into the night.`,
+            fx: () => ({ d: { gold: -8, folk: 10 }, karma: 'mercy', mk: { i: 'sack' }, th: [ { tpl: 'grain_back', delay: ri(5, 8), actor: 1 } ], chron: 'The royal granaries were opened to the starving.' })
+          },
+          {
+            label: 'Grain feeds armies, not beggars',
+            out: `The reeve bows, but his eyes are flat as pond ice. Behind him, someone begins — very quietly — to sing a hunger-song.`,
+            fx: () => ({ d: { folk: -9 }, karma: 'iron', anger: 1 })
+          } ]
+      });
+      T({
+        id: 'grain_back', cat: 'thread',
+        out: (s, a) => a.trait === 'greedy'
+          ? `${a.name} returns at harvest leaning on a full sack the crown never gave — sold, the reeves say, in the next shire. "Kings forget," ${a.name} says pleasantly. "Markets don't."`
+          : `${a.name} returns with the first flour of the new season, ground fine, wrapped in a clean cloth. The court eats bread that morning and pretends not to notice that the king does too.`,
+        fx: (s, a) => ({
+          d: a.trait === 'greedy' ? { folk: -7 } : { folk: 8, faith: 1 }, st: a.trait === 'greedy' ? -3 : 2,
+          chron: a.trait === 'greedy' ? 'The debt of bread came due, and was judged wanting.' : 'The debt of bread came due — and was paid in kind.'
+        })
+      });
+
+      T({
+        id: 'hearthtax', cat: 'base', who: [ 'noble', 'merchant' ],
+        text: () => 'The crown’s collector of hearth-tax spreads a vellum of chimney-tops across the table and taps the blank margins. Crofts unlisted, hearths hidden behind byres, smoke-holes stopped with wet straw at dusk. "Leave to squeeze, sire," comes the offer, "and the coffers will sing for it."',
+        choices: [
+          {
+            label: 'Grant the commission',
+            out: `By quarter's end the tax rolls run fat, and so do the collector's fingers. Smoke-holes all over the shire are stopped with wet straw — at dawn, now, so the smoke won't be seen.`,
+            fx: () => ({ d: { gold: 12, folk: -10 }, karma: 'gold', chron: 'The hearth-tax was squeezed to the smoke-hole.' })
+          },
+          {
+            label: 'The king’s mercy is cheaper',
+            out: `"As the crown pleases." The collector retires with unblemished composure, but the crofts hear of it by candle-fall, and someone leaves a posy of rye-flowers on the hall steps.`,
+            fx: () => ({ d: { folk: 6, gold: -3 }, karma: 'mercy' })
+          } ]
+      });
+
+      T({
+        id: 'witch', cat: 'base', who: [ 'witch' ], cond: s => s.stats.faith > 25,
+        text: s => `The wisewoman is brought up from the cells between two men-at-arms, wrists bound with hemp. The village of ${sV(s)} says the blight followed her shadow; the cloister says worse. "I have pulled fevers out of children with these hands," she says, level. "It is a blessing when it works and witchcraft when it doesn't."`,
+        choices: [
+          {
+            label: 'Give her to the pyre',
+            out: `The faggots catch quickly. She does not scream, which the crowd finds worse. That night, for the first time in living memory, the owls do not call.`,
+            fx: () => ({ d: { faith: 9, folk: -9 }, karma: 'iron', mk: { i: 'pyre' }, th: [ { tpl: 'pyre_ash', delay: ri(6, 9) } ], chron: 'A wisewoman was given to the pyre.' })
+          },
+          {
+            label: 'She tends the sick. Release her.',
+            out: `The ropes are cut. She rubs her wrists, looks at the king for a long moment, and inclines her head exactly as far as courtesy requires. The cloister's outrage arrives by the next messenger.`,
+            fx: () => ({ d: { faith: -7, folk: 6 }, karma: 'mercy', th: [ { tpl: 'witch_gift', delay: ri(5, 8) } ] })
+          } ]
+      });
+      T({
+        id: 'pyre_ash', cat: 'thread',
+        out: `A cold summer, a dry well at the cloister, and in three villages the same dream on the same night: a woman with rope-marked wrists counting something on her fingers, patiently, one item a season. The cloister orders prayers; the shires leave milk out; the scribe writes only, "the year was narrow."`,
+        fx: () => ({ d: { folk: -4, faith: -4 }, chron: 'The year was narrow, and the dream was shared.' })
+      });
+      T({
+        id: 'witch_gift', cat: 'thread',
+        out: `A basket arrives at the postern with no messenger: fever-tincture, wound-salve, and a sprig of rye tied with red thread. When the autumn sickness comes up the river valley, the villages stand ready — though the cloister mutters, at length, about the source.`,
+        fx: () => ({ d: { folk: 8, faith: -3 }, chron: 'The wisewoman’s remedies kept the fever from the door.' })
+      });
+
+      T({
+        id: 'keep', cat: 'base', who: [ 'noble' ],
+        text: s => `A border lord has ridden three days from the eastern march with mud to the hip. Raiders burned the mill at ${sV(s)} in spring; he wants a stone keep at the ford. "Wood burns, sire. I have watched it burn. Stone does not."`,
+        choices: [
+          {
+            label: 'Fund the keep at the ford',
+            out: `Masons are dispatched with the autumn wagons. Three letters arrive over the winter — one to report progress, two merely, it seems, to be seen writing.`,
+            fx: () => ({ d: { gold: -12, army: 10 }, mk: { i: 'tower' }, chron: 'A stone keep was raised at the march.' })
+          },
+          {
+            label: 'Walls are for the fearful',
+            out: `His jaw sets like mortar. "Then I will hold the ford with what I have, sire. My people will remember what the crown could spare." The ride home is long and silent.`,
+            fx: () => ({ d: { army: -8, folk: -2 } })
+          } ]
+      });
+
+      T({
+        id: 'charter', cat: 'base', who: [ 'merchant' ],
+        text: () => `The guild of ${pick([ 'fullers', 'vintners', 'salters', 'fishmongers' ])} petitions for a sealed charter: sole rights of trade at the winter fair, in exchange for a purse "commensurate with the crown's wisdom." The purse is set on the table. It clinks with the confidence of a rehearsed argument.`,
+        choices: [
+          {
+            label: 'Seal the charter',
+            out: `The purse is carried to the counting-room by two men. The guild's stalls gleam at the winter fair; the free peasants who sold there before now pay the guild's toll instead.`,
+            fx: () => ({ d: { gold: 11, folk: -5 }, karma: 'gold', chron: 'A guild bought its charter, dear.' })
+          },
+          {
+            label: 'Trade must stay free',
+            out: `The purse is recalled with a smooth apology, but the guild's agents will drink to the king's health all winter in tones of exquisite irony.`,
+            fx: () => ({ d: { folk: 4, gold: -2 }, karma: 'mercy' })
+          } ]
+      });
+
+      T({
+        id: 'roof', cat: 'base', who: [ 'priest' ],
+        text: () => 'A drawing is unfolded: the cathedral with its great roof shingled in gold, the noon light striking fire from it. "Pilgrims would cross the sea to see it," comes the promise. "And what is given to the glory of God is never missing from the ledger of heaven."',
+        choices: [
+          {
+            label: 'Gild the roof',
+            out: `Work begins at Easter. By winter the roof throws light like a struck bell, and pilgrims' coins begin to ring in the cathedral's own boxes.`,
+            fx: () => ({ d: { gold: -10, faith: 10 }, karma: 'god', chron: 'The cathedral roof was shingled in gold.' })
+          },
+          {
+            label: 'God sees the heart, not the shingles',
+            out: `The petition is carried back to the cloister, where it is prayed over at some length. The cathedral keeps its slate, and the sermons that winter have a certain chill in them.`,
+            fx: () => ({ d: { faith: -8 }, karma: 'god' })
+          } ]
+      });
+
+      T({
+        id: 'feud', cat: 'base', who: [ 'peasant' ],
+        text: s => `The reeve of ${sV(s)} shuffles forward with a sealed letter and a persuasive cough. Two young people wish to wed — one from either bank of the river, where two villages have feuded over eel-weirs since the flood nobody remembers. "They'll wed regardless, sire. The question is only whether they do it running."`,
+        choices: [
+          {
+            label: 'Bless the match',
+            out: `The banns are read in both parishes on the same morning — a first in ninety years. The wedding spills onto the bridge itself, which both villages suddenly discover is a perfectly good bridge.`,
+            fx: () => ({ d: { folk: 9, faith: 2 }, karma: 'mercy', chron: 'A wedding healed a ninety-year feud.' })
+          },
+          {
+            label: 'Let the feud stand',
+            out: `The young pair wed in secret and are fined by both villages, each more delighted to fine than to forgive. The bridge stays empty. The eel-weirs stay ruined.`,
+            fx: () => ({ d: { folk: -7 }, karma: 'iron' })
+          } ]
+      });
+
+      T({
+        id: 'deserter', cat: 'base', who: [ 'soldier' ],
+        text: s => `A soldier stands in irons, boots worn through at the heel. He left the wall at ${sV(s)} — not in battle, he is quick to say, but when leave to bury his daughter was refused, and he went anyway. "I was gone eleven days, sire. I buried her. I walked back. I am here."`,
+        choices: [
+          {
+            label: 'The wall holds by fear as much as iron',
+            out: `They hang him from the wall he left, and for a season the sentries stand very straight and very silently. Discipline, the captain reports, has never been better. Or colder.`,
+            fx: () => ({ d: { army: 7, folk: -6, faith: -2 }, karma: 'iron', chron: 'A deserter was hanged from the wall he left.' })
+          },
+          {
+            label: 'Send him home to plough',
+            out: `The irons come off. The captain stares at the floor. Somewhere on the wall, a man who was thinking of his own fields decides, quietly, to stay.`,
+            fx: () => ({ d: { army: -7, folk: 6 }, karma: 'mercy' })
+          } ]
+      });
+
+      T({
+        id: 'bandit', cat: 'base', who: [ 'bandit' ],
+        text: () => 'They took the thief at the ford with the royal mail-bags still under the cloak, and the marshal wants a gibbet by Friday. But the man kneels as if the flagstones were grass and offers something strange: the black oath. Levy service, ten years, no pay, no complaint. "I know every trail, sire. And every hand that walks them."',
+        choices: [
+          {
+            label: 'The gibbet, as the marshal says',
+            out: `It is a short ceremony and a long drop. The mail-bags are recovered, the trail-secrets die with their keeper, and the tolls are collected in peace.`,
+            fx: () => ({ d: { folk: 2, faith: 3 }, karma: 'iron', chron: 'The ford-bandit swung on a Friday.' })
+          },
+          {
+            label: 'Accept the black oath',
+            out: `They cut the rope before it's needed. The oath is taken with a hand on the bare sword, and something in the marshal's face suggests he is already composing his objections to next week's business.`,
+            fx: () => ({ d: { army: 6, gold: -2 }, karma: 'mercy', th: [ { tpl: 'bandit_oath', delay: ri(6, 9), actor: 1 } ], chron: 'A bandit was sworn to the crown instead of the rope.' })
+          } ]
+      });
+      T({
+        id: 'bandit_oath', cat: 'thread',
+        out: (s, a) => (a.trait === 'loyal' || a.trait === 'kind')
+          ? `The crown's tax convoy was ambushed at the narrows — by nobody. ${a.name} had walked the trail a week before and bought every ambush with silver and threats. The convoy rolled through empty woods, and the tax arrived with a sprig of rowan tied to the lead chest.`
+          : `The autumn convoy never arrived. Later, three mail-bags surfaced in a market two shires east, and a trail that only the crown's own sworn man knew was found worn smooth by unfamiliar boots.`,
+        fx: (s, a) => ({
+          d: (a.trait === 'loyal' || a.trait === 'kind') ? { gold: 10 } : { gold: -9, folk: -3 },
+          st: (a.trait === 'loyal' || a.trait === 'kind') ? 2 : -3,
+          chron: (a.trait === 'loyal' || a.trait === 'kind') ? 'The black oath was honored at the narrows.' : 'The black oath proved a rope in another hand.'
+        })
+      });
+
+      T({
+        id: 'plague', cat: 'base', who: [ 'priest', 'peasant' ], cond: s => s.stats.folk > 20,
+        text: s => `A rider, foam to the saddle: red rash in ${sV(s)}, eleven dead in six days, the doors marked with charcoal crosses. The choice is put plainly: seal the village and let it burn out, or send physicians and silver and pray both arrive in time.`,
+        choices: [
+          {
+            label: 'Seal the village. No one in, no one out.',
+            out: `The roads are closed with felled oaks and the king's own seal nailed to a post. Weeks pass. Smoke rises thin from the sealed chimneys, then normally, then at last generously — and the crosses are scrubbed from the doors by hands nobody will name.`,
+            fx: () => ({ d: { folk: -8, army: 1 }, karma: 'iron', mk: { i: 'cross' }, th: [ { tpl: 'plague_sealed', delay: ri(5, 7) } ], chron: 'A village was sealed against the rash-sickness.' })
+          },
+          {
+            label: 'Send physicians and silver',
+            out: `Two physicians ride through the night with the royal purse between them. The sickness burns for a month and costs a winter's sleep — and the village learns the shape of the king's seal on a sack of grain.`,
+            fx: () => ({ d: { gold: -11, folk: 7 }, karma: 'mercy', mk: { i: 'bell' }, th: [ { tpl: 'plague_paid', delay: ri(4, 6) } ], chron: 'Physicians were sent against the rash-sickness.' })
+          } ]
+      });
+      T({
+        id: 'plague_sealed', cat: 'thread',
+        out: `The sealed village stands. The survivors speak of the weeks inside very quietly, and only to each other, and never of the ones who scratched at the oaks from the outside. The king's seal on the post has been polished smooth by weather and worse.`,
+        fx: () => ({ d: { folk: -3 }, chron: 'The sealed village outlived its sickness — and its memory of mercy.' })
+      });
+      T({
+        id: 'plague_paid', cat: 'thread',
+        out: `The physician returns to collect his second purse and stays instead for a cup of wine, being unable to leave unspoken one finding: the sickness came, he believes, in a shipment of hides. The guild that shipped them is already drafting its defense.`,
+        fx: () => ({ d: { folk: 4 }, chron: 'The rash-sickness broke before the harvest.' })
+      });
+
+      T({
+        id: 'minstrel', cat: 'base', who: [ 'minstrel' ],
+        text: () => 'A fiddler plays two bars in the doorway before being admitted, which is either great confidence or great necessity. The proposal: a song-cycle of the reign — the crown\u2019s justice, mercy, and victory — sung in every market from the coast to the hills. "A crown is only a story people agree to," comes the sales pitch, mid-tuning. "I tell stories."',
+        choices: [
+          {
+            label: 'Patron the song-cycle',
+            out: `The coin is paid and the fiddler vanishes down the year like a dropped stitch. Fragments come back: a verse about a ford, a chorus about a loaf. Things the crown did are becoming things people sing.`,
+            fx: () => ({ d: { gold: -6, folk: 7 }, karma: 'mercy', th: [ { tpl: 'song', delay: ri(6, 9) } ] })
+          },
+          {
+            label: 'Flattery is not legal tender',
+            out: `The fiddle is packed without argument and, at the door, four notes of something ancient and derisive are played. By spring the taverns of three shires know a short, funny song about a king who haggled with a fiddler.`,
+            fx: () => ({ d: { folk: -4 }, karma: 'gold', chron: 'A fiddler left the court unpaid — and unhurried.' })
+          } ]
+      });
+      T({
+        id: 'song', cat: 'thread',
+        out: `The song-cycle arrives ahead of itself: shepherds humming a verse about the ford, millers keeping time to a chorus about the loaf. In a season when the harvest ran thin, the story ran thick — and it was, on the whole, a flattering one.`,
+        fx: () => ({ d: { folk: 8 }, chron: 'The reign was sung in the markets, and sung well.' })
+      });
+
+      T({
+        id: 'treason', cat: 'base', who: [ 'noble' ],
+        text: () => 'A lord arrives at speed with two witnesses and a face of wounded honor. Another of the great houses, it is claimed, has been corresponding with the raiders of the march: feathers, seals, a letter half-burned. "Justice, sire. Before my house takes it into its own hands, as houses do."',
+        choices: [
+          {
+            label: 'Seize the accused house',
+            out: `The household is taken at dawn; the accused towers stand empty by Michaelmas, and their tithe-share — conveniently forfeit — flows to the crown. But in the shires they tell it differently: that words against a great house are now enough.`,
+            fx: () => ({ d: { gold: 10, folk: -5 }, karma: 'iron', th: [ { tpl: 'feud_blood', delay: ri(6, 9) } ], chron: 'A great house fell to an accusation.' })
+          },
+          {
+            label: '“Bring me proof, not feathers.”',
+            out: `The witnesses look at their boots. The claim withdraws unproven but not unsaid, and the two houses glare across their common hedge like dogs on a chain.`,
+            fx: () => ({ d: { folk: 2 }, karma: 'mercy' })
+          } ]
+      });
+      T({
+        id: 'feud_blood', cat: 'thread',
+        out: () => `The fallen house's retainers did not all scatter. One October night the great barn of ${vreg()} burned with the tithe inside, and on the door, burned carefully, the crest of a house that no longer exists — set there, the sagging timbers say, by way of answer.`,
+        fx: () => ({ d: { gold: -8 }, chron: 'Fire answered the fall of a house.' })
+      });
+
+      T({
+        id: 'wolves', cat: 'base', who: [ 'peasant' ],
+        text: s => `The shepherds of ${sV(s)} have counted the winter's lambs twice and don't like either number. Something has come down from the high wood — more than one, and unafraid. A lamb's bell is laid on the table, cut strap and all. "Fences, sire. Hunters. Or we lose the flocks by Candlemas."`,
+        choices: [
+          {
+            label: 'Hire hunters from the hills',
+            out: `Three hillmen take the contract, and the high wood gives up two grey pelts by the first hard frost — one of which, the shepherds swear, holding the lamp lower, was no wolf at all.`,
+            fx: () => ({ d: { gold: -7, folk: 8 }, mk: { i: 'paw' } })
+          },
+          {
+            label: 'Fences are cheaper',
+            out: `The fences are built and mended and built again. The flocks thin by Candlemas, and the shepherds' songs that winter are short ones, sung close to the fire.`,
+            fx: () => ({ d: { folk: -7 } })
+          } ]
+      });
+
+      T({
+        id: 'envoy', cat: 'base', who: [ 'merchant' ],
+        text: () => `A caravan-envoy of the Khan of the ${pick([ 'Amber', 'Salt', 'Nine-River' ])} Steppe presents gifts of pepper and silk, and a treaty rolled in brocade: free trade at the river market, their goods and theirs alone to sell there. The cloister will hear the word "infidel" before the wax is cold.`,
+        choices: [
+          {
+            label: 'Break the seal on the treaty',
+            out: `By midsummer the river market stinks gloriously of pepper. The treasury's grain-count climbs; so does the price of incense, for the cloister has begun buying its candles from farther away, pointedly.`,
+            fx: () => ({ d: { gold: 11, faith: -7 }, karma: 'gold', chron: 'The steppe envoy’s treaty was sealed.' })
+          },
+          {
+            label: 'Return the gifts unopened',
+            out: `The envoy receives the refusal with a bow of perfect depth and departs with the caravan whole. The cloister is delighted; the guild's winter ledgers are not, and the incense at Christmas is thin and local.`,
+            fx: () => ({ d: { faith: 6, gold: -3 }, karma: 'god' })
+          } ]
+      });
+
+      T({
+        id: 'orphan', cat: 'base', who: [ 'orphan' ],
+        text: () => 'The gate-sergeant presents, at arm\u2019s length, a child: mud to the hairline, an empty bowl worn smooth at the rim. Fled the famished countryside; can gut a fish, mind a fire, and lie — by the sergeant\u2019s appraisal — impressively. "I ask for nothing," the child says, chin up, "except everything."',
+        choices: [
+          {
+            label: 'Take the child as a ward of the crown',
+            out: `The child is washed, fed, and set to carrying the king's ink. The bowl is kept on a shelf in the kitchens, nobody quite says why, and the first lesson taught — before the letters — is which lies matter.`,
+            fx: () => ({ d: { gold: -3, folk: 6 }, karma: 'mercy', th: [ { tpl: 'ward', delay: ri(8, 11), actor: 1 } ], chron: 'A child of the roads was taken as the crown\u2019s ward.' })
+          },
+          {
+            label: 'The gate is for envoys',
+            out: `The sergeant gives the child bread from his own hand — out of sight of the gate — and the hall door closes. Small feet go down the road without once looking back, which is the part the sergeant will find himself describing, years on, for the first time.`,
+            fx: () => ({ d: { folk: -6, faith: -3 }, karma: 'iron', chron: 'A child was turned from the gate.' })
+          } ]
+      });
+      T({
+        id: 'ward', cat: 'thread',
+        out: (s, a) => `The ink-carrier of the privy chamber now stands taller than the king's chair, and has learned — besides the letters — the sword, the yard, and the watching. At the winter court ${a.name} kneels and is given a spear and an oath, and rises as the youngest sworn retainer the crown has had in living memory.`,
+        fx: () => ({ d: { army: 8, folk: 3 }, chron: 'The crown’s ward was sworn to the spear.' })
+      });
+
+      T({
+        id: 'sheriff', cat: 'base', who: [ 'noble' ],
+        text: s => `A ledger is slid across the table: the sheriff of ${sV(s)}, it shows, has been skimming the market-tolls for four years — neatly, moderately, and with excellent penmanship. "He is, I grant, an honest thief. The question before the crown is whether that is one thief or two."`,
+        choices: [
+          {
+            label: 'The pillory, and audit every shire',
+            out: `The sheriff takes his turn in the pillory to a silence worse than stones. The audit that follows catches two lesser moles and frightens every ledger-keeper in the land into a season of ruinous honesty.`,
+            fx: () => ({ d: { folk: 9 }, karma: 'iron', th: [ { tpl: 'sheriff_gone', delay: ri(5, 8) } ], chron: 'A sheriff was pilloried and the shires audited.' })
+          },
+          {
+            label: 'Take the crown’s cut, say nothing',
+            out: `A quiet arrangement is made. The tolls arrive more regularly than before, and the sheriff's smile at the autumn fair is the smile of a man holding a receipt.`,
+            fx: () => ({ d: { gold: 9, folk: -7 }, karma: 'gold', th: [ { tpl: 'blackmail', delay: ri(6, 8), actor: 1 } ], chron: 'The crown took a thief’s cut, quietly.' })
+          } ]
+      });
+      T({
+        id: 'sheriff_gone', cat: 'thread',
+        out: `With the sheriff pilloried and the shires watched, the smuggling roads found new keepers. By spring, half the forest tolls are paid in shadow to men whose names the crown has never heard — and the roads, one honest carter notes, have never been safer or stranger.`,
+        fx: () => ({ d: { gold: -7 }, chron: 'New keepers inherited the shadow-roads.' })
+      });
+      T({
+        id: 'blackmail', cat: 'thread',
+        text: (s, a) => `A note arrives, unsigned, in a careful hand the court has seen before on certain ledgers: the arrangement is working beautifully, and will continue to work, for double. "Fair," the note concludes, "as the crown taught me." ${a.name} brings it personally and does not quite look at it.`,
+        choices: [
+          {
+            label: 'Pay. Once more.',
+            out: `The purse goes out by night, and the careful hand writes no more — that year. The king signs fewer things with relish that month.`,
+            fx: () => ({ d: { gold: -10 }, karma: 'gold' })
+          },
+          {
+            label: 'Seize him and his ledgers',
+            out: `He is taken at his own toll-gate, profiting — the marshals note drily — from excellent advice: no one watches a man robbing himself. His hoard more than covers the crown's lost cut.`,
+            fx: () => ({ d: { gold: 4, folk: 6 }, karma: 'iron', chron: 'The blackmailing sheriff was taken at his own gate.' })
+          } ]
+      });
+
+      T({
+        id: 'mine', cat: 'base', who: [ 'merchant', 'soldier' ],
+        text: s => `The royal silver mine collapsed at dawn shift — the second gallery gone, nine voices still knocking on the rock from below. The surveyor at ${sV(s)} lays out the arithmetic with a frankness that is almost cruel: dig by hand through twice the stone, or cut losses and seal the shaft. "The ore will keep, sire. I cannot speak for the knocking."`,
+        choices: [
+          {
+            label: 'Dig by hand. All hands.',
+            out: `The mine is stripped of every miner, every strongman, half the garrison. On the fourth day they break through, and nine men come up into winter daylight squinting like kittens. The crown's silver is short for a year, and long remembered after.`,
+            fx: () => ({ d: { gold: -9, folk: 9, faith: 2 }, karma: 'mercy', mk: { i: 'pick' }, chron: 'Nine miners were dug out of the royal silver.' })
+          },
+          {
+            label: 'Seal the shaft. The vein first.',
+            out: `The masonry is good and quick. The knocking goes on for a day, then stops — though the surveyor, who kept the tally of hours, never quite sleeps through a storm again. The vein reopens in spring, worked by men who ask higher wages, and get them.`,
+            fx: () => ({ d: { gold: 6, folk: -9, faith: -4 }, karma: 'iron', mk: { i: 'cross' }, chron: 'The shaft was sealed with the miners inside.' })
+          } ]
+      });
+
+      T({
+        id: 'duel', cat: 'base', who: [ 'knight' ],
+        text: () => 'A knight stands in the hall still in traveling steel, ridden hard from the border where a banneret called the crown — the person of the king, no less — “a mouse in ermine.” Steel has been offered to settle it. The court waits, delighted, to learn whether a crown can be insulted in turns.',
+        choices: [
+          {
+            label: 'Meet the banneret at the lists',
+            out: `The crown's champion rides and does the thing properly: unhorsed at the second pass, it turns out, by nobody's plan but the horses'. The border banneret yields his insult on his knees and pays for the feast.`,
+            fx: () => ({ d: { army: 8, gold: -2 }, karma: 'iron', chron: 'The crown’s insult was answered in the lists.' })
+          },
+          {
+            label: 'Kings do not bleed for words',
+            out: `The insult stands unanswered in every tavern from here to the border, growing arms and legs. The knight salutes without warmth and rides back slower than he came.`,
+            fx: () => ({ d: { army: -8, folk: -2 }, karma: 'mercy' })
+          } ]
+      });
+
+      T({
+        id: 'bridge', cat: 'base', who: [ 'peasant', 'merchant' ],
+        text: s => `The great timber bridge over the ${pick([ 'Ald', 'Wyre', 'Mourne' ])} came down in the flood, cutting ${sV(s)} from its market and the shire from its taxes. The ford below is passable, "in the manner of a wager." A plank of the old bridge has been brought as a gift, and with it the opinion that oak is dearer than dread.`,
+        choices: [
+          {
+            label: 'Raise the bridge in stone',
+            out: `The work runs through summer and a mason's oath and one funeral. The stone bridge stands by the frost — ugly, tax-paying, and permanent in the way of things that intend to outlive everybody.`,
+            fx: () => ({ d: { gold: -9, folk: 8, army: 2 }, mk: { i: 'bridge' }, chron: 'A stone bridge was raised where the ford kept its wager.' })
+          },
+          {
+            label: 'Let them ford while the sun shines',
+            out: `The ford serves, at the price of the occasional ox and one alderman's dignity. Come the autumn spate, the market carts queue on both banks like pilgrims at a shrine with the saint out.`,
+            fx: () => ({ d: { folk: -7 }, karma: 'iron' })
+          } ]
+      });
+
+      T({
+        id: 'comet', cat: 'base', who: [ 'priest' ],
+        text: () => 'For three nights a comet has stood over the keep like a drawn nail, and the kingdom has stopped looking at its work. The learned view is "a vapour in the upper air"; the cloister\u2019s view is "a seal upon a letter, and the letter is addressed to the king." Everyone would like to know how the crown reads it.',
+        choices: [
+          {
+            label: 'Declare it an omen of the reign’s glory',
+            out: `The comet is proclaimed from every pulpit as a sign set in the sky at the crown's accession, doctored in the retelling to have appeared the night before. Belief is not universal, but it is loud.`,
+            fx: () => ({ d: { faith: 7, folk: -4 }, karma: 'god', chron: 'The comet was declared the crown’s omen.' })
+          },
+          {
+            label: 'Hold a feast beneath it, and say nothing',
+            out: `Tables are set in the yard under the thing, and the kingdom eats, drinks, and watches a finger of ice slide slowly down the sky. It is the best-attended sermon the reign has held, and no sermon at all.`,
+            fx: () => ({ d: { folk: 7, gold: -5 }, karma: 'mercy' })
+          } ]
+      });
+
+      T({
+        id: 'fool', cat: 'base', who: [ 'minstrel' ],
+        text: () => 'A licensed fool petitions for leave to mock the crown nightly from the hall flagstones — "within reason," he adds, producing a written definition of reason that is itself mildly treasonous. The chamberlain is horrified. The servants, gathered at the door, are not.',
+        choices: [
+          {
+            label: 'License the fool',
+            out: `He is terrible and he is nightly, and somehow the hall is warmer for it. Twice he goes too far; twice the joke lands on a courtier instead of the crown, which everyone pretends is a coincidence.`,
+            fx: () => ({ d: { gold: -2, folk: 6 }, karma: 'mercy', chron: 'A fool was licensed to mock the crown nightly.' })
+          },
+          {
+            label: 'Fools are for lesser courts',
+            out: `He bows without bitterness and leaves without work. The servants' laughter that winter is quieter, more careful, and entirely elsewhere.`,
+            fx: () => ({ d: { folk: -4 }, karma: 'iron' })
+          } ]
+      });
+
+      T({
+        id: 'tourney', cat: 'base', who: [ 'knight' ],
+        text: s => `The heralds propose a great tourney at ${sV(s)} for the king's nameday: splinters, pageantry, and every knight of quality in the realm in one field wearing the crown's colors. The prize purse, the marshal notes, would arm a company of foot for a season.`,
+        choices: [
+          {
+            label: 'Fund the prize purse',
+            out: `The lists are raised, the banners go up, and for three days the kingdom remembers it has an army and that the army has a king. Two legs and one engagement are lost; the prestige is not.`,
+            fx: () => ({ d: { gold: -8, army: 7, folk: 3 }, karma: 'gold', chron: 'A great tourney was held at the crown’s charge.' })
+          },
+          {
+            label: 'The martial trades can fund themselves',
+            out: `The heralds withdraw, crestfallen in the technical sense. That autumn the knights tourney in the next kingdom instead, loudly, wearing somebody else's colors.`,
+            fx: () => ({ d: { army: -6 }, karma: 'iron' })
+          } ]
+      });
+
+      T({
+        id: 'loan', cat: 'base', who: [ 'merchant' ],
+        text: () => 'A deputation of Lombard bankers, silk at the cuffs and arithmetic in the smiles, offers the crown fifteen chests of gold at once — repayable with interest, secured "against the customary things." The customary things are not enumerated. They do not need to be.',
+        choices: [
+          {
+            label: 'Take the Lombards’ gold',
+            out: `The chests are counted twice and carried in. For one glittering season the crown pays every debt and then some — and the first letter about repayment arrives before the wine from the celebration is drunk.`,
+            fx: () => ({ d: { gold: 15 }, karma: 'gold', th: [ { tpl: 'loan_due', delay: ri(5, 7) } ], chron: 'The crown borrowed Lombard gold.' })
+          },
+          {
+            label: 'Sovereigns do not borrow',
+            out: `The bankers bow and take their chests elsewhere — to the border lords, it is said, which is a thought the marshal files away unasked-for. The treasury stays proud and light.`,
+            fx: () => ({ d: { gold: -2 }, karma: 'iron' })
+          } ]
+      });
+      T({
+        id: 'loan_due', cat: 'thread',
+        text: () => `The Lombards' factor stands in the hall with the contract in one hand and, pointedly, nothing in the other. The sum is due: eighteen chests. "The crown," he observes sweetly, "has a famous memory for grants and a famous amnesia for debts."`,
+        choices: [
+          {
+            label: 'Repay the eighteen chests',
+            out: `It hurts like a pulled tooth, and the counting-room is quiet for a week. But the Lombards' letter of receipt becomes, in every counting-house in Christendom, a small advertisement: the crown pays.`,
+            fx: () => ({ d: { gold: -18, folk: 3 }, karma: 'gold', chron: 'The crown repaid the Lombards to the chest.' })
+          },
+          {
+            label: 'Repudiate the debt',
+            out: `The factor is escorted to the gate with perfect courtesy and no money. Every Lombard house calls in every loan on the border lords the same week, and the crown's name gains a new entry in foreign ledgers, underlined.`,
+            fx: () => ({ d: { faith: -4, folk: -2 }, karma: 'gold', anger: 2, chron: 'The crown repudiated the Lombards, and was noted.' })
+          } ]
+      });
+
+      T({
+        id: 'harvest', cat: 'base',
+        text: () => 'Autumn court, and the harvest stands. The reeves propose a fair in the capital: stalls, fiddlers, bear-baiting, and every cask in the county. The treasurer proposes, alternatively, that a fair full of coin is a tax collector\u2019s harvest too.',
+        choices: [
+          {
+            label: 'Open the fair, and pay the fiddlers',
+            out: `The capital smells of cinnamon and trampled straw for a week. By Sunday the crown is popular in a way no decree has managed, and the fiddlers, paid in advance, compose something about the king's generosity in a moderate key.`,
+            fx: () => ({ d: { gold: -5, folk: 7 }, karma: 'mercy', chron: 'The crown paid for the harvest fair, fiddlers and all.' })
+          },
+          {
+            label: 'Tax the fair',
+            out: `The toll-booths go up before the stalls do. The coin comes in, the crowds still come — thinner, tighter-pursed — and a new proverb is born about shearing sheep that are already inside the pen.`,
+            fx: () => ({ d: { gold: 8, folk: -6 }, karma: 'gold', anger: 1, chron: 'The crown taxed its own harvest fair.' })
+          } ]
+      });
+      T({
+        id: 'yule', cat: 'base',
+        text: () => 'The Yule question, laid out with the Advent candles: the old feast in the old way — boar, fires, gifts to the household — or a bare and godly Christmas, the difference saved, the cloister nodding along like a schoolmaster at a right answer.',
+        choices: [
+          {
+            label: 'Keep the old feast',
+            out: `The hall roars for twelve nights. The boar is legendary; the gifts to the household are remembered in service for a decade. The cloister sniffs that Bethlehem had no boar, but eats its share.`,
+            fx: () => ({ d: { gold: -6, folk: 6, faith: -1 }, karma: 'mercy', chron: 'The Yule feast was kept in the old way.' })
+          },
+          {
+            label: 'A godly, thrifty Christmas',
+            out: `The fires burn low and the sermons burn high. The treasury keeps its coin; the household keeps its disappointment; a candle is lit for the king's soul, which everyone agrees is a fine substitute for a goose.`,
+            fx: () => ({ d: { gold: 4, folk: -5, faith: 4 }, karma: 'god' })
+          } ]
+      });
+
+      /* ---------- v3 petitions ---------- */
+      T({
+        id: 'alchemist', cat: 'base', who: [ 'merchant', 'witch' ],
+        text: () => 'A traveling alchemist has taken rooms at the sign of the Gilded Mortar and writes to the crown in ink of his own manufacture: for twelve gold of retort-glass and furnace-time, he will show the king lead made honest. The chamberlain has read the letter twice and filed it, simultaneously, under "dangerous" and "tempting."',
+        choices: [
+          {
+            label: 'Fund the furnace',
+            out: `The purse is paid over; the smoke from the Gilded Mortar turns a troubling color by Thursday, and the town's dogs begin avoiding that whole street. The alchemist promises, in a new letter, results before the quarter-day.`,
+            fx: () => ({ d: { gold: -12 }, karma: 'gold', th: [ { tpl: 'alchemist_result', delay: ri(4, 7), actor: 1 } ], chron: 'The crown funded an alchemist\u2019s furnace.' })
+          },
+          {
+            label: 'Expel him from the walls',
+            out: `He departs with dignity and six pots, pausing at the gate only to pronounce, in a voice pitched for the square, that great discoveries are always refused first by kings and shortly afterward thanked by their successors.`,
+            fx: () => ({ d: { faith: 1 }, karma: 'iron', chron: 'The alchemist was expelled, ink and all.' })
+          } ]
+      });
+      T({
+        id: 'alchemist_result', cat: 'thread',
+        out: (s, a) => rnd() < 0.55
+          ? `The door of the Gilded Mortar bursts open on a Tuesday, and ${a.name} emerges ink-stained, singed, and radiant, holding out a spoonful of dull metal that the assayers swear into silver by evening. The king's share is real, the technique unrepeatable, and the alchemist insufferable for a full year.`
+          : `The furnace exploded, taking the shed, the shed's rent, and — very nearly — ${a.name}, who was last seen on the north road with excellent new boots and no explanations. The crown's twelve gold went with the smoke, which is at least a memorable form of charity.`,
+        fx: (s, a) => rnd() < 0.55
+          ? ({ d: { gold: 16 }, st: 2, chron: 'The alchemist\u2019s furnace delivered silver, to everyone\u2019s astonishment.' })
+          : ({ d: { folk: -3 }, st: -3, anger: 1, chron: 'The alchemist\u2019s furnace exploded, expensively.' })
+      });
+
+      T({
+        id: 'whale', cat: 'base', who: [ 'peasant', 'merchant' ],
+        text: () => 'A whale — an actual whale, sixty feet of it — has stranded in the river mouth and cannot be persuaded otherwise. The town wants it for meat and oil; the cloister wants it preserved as a wonder of God with pilgrims\u2019 pennies; the treasury has discovered that whale oil is worth very nearly an argument.',
+        choices: [
+          {
+            label: 'Meat for the shires',
+            out: `Butchers are sent with the king's thanks and very long knives. For a month the whole river valley eats whale, whale broth, and whale pudding, and the ballads of the winter are mostly about the smell.`,
+            fx: () => ({ d: { folk: 10, faith: -2 }, karma: 'mercy', chron: 'A stranded whale fed the shires for a month.' })
+          },
+          {
+            label: 'Oil for the treasury',
+            out: `The rendering goes on for nine days behind a fence of soldiers. The casks come up the river in a slow, glistening train; the town watches in silence, and the word "strand" acquires a second, fiscal meaning.`,
+            fx: () => ({ d: { gold: 9, folk: -6 }, karma: 'gold', anger: 1, chron: 'The whale was rendered for oil, and the town remembers.' })
+          },
+          {
+            label: 'A shrine of God’s wonder',
+            out: `The carcass is consecrated where it lies. Pilgrims come all winter to touch the ribs, the cloister collects a modest tide of pennies, and the smell — the smell becomes part of the devotion, they insist.`,
+            fx: () => ({ d: { faith: 9, gold: -4 }, karma: 'god', chron: 'The whale was consecrated a wonder, and pilgrims came.' })
+          } ]
+      });
+
+      T({
+        id: 'census', cat: 'base', who: [ 'noble' ],
+        text: () => 'The king\u2019s new surveyor proposes a census: every hearth, hide, hog and hope in the realm, entered fair and taxed accordingly. "The old rolls," he notes, tapping a document soft with age, "were compiled when the present king\u2019s grandfather was still a rumor."',
+        choices: [
+          {
+            label: 'Count everything',
+            out: `The enumerators go out with rolls and pencils and return with enemies. The count is thorough, the revenue improves, and from now on there is not a hog in the realm that does not know it has been counted.`,
+            fx: () => ({ d: { gold: 10, folk: -6 }, karma: 'gold', anger: 1, chron: 'A great census was taken, and resented.' })
+          },
+          {
+            label: '“The realm cannot be summed.”',
+            out: `The surveyor bows and closes his ledger on his own fingers, which is as close as he comes to argument. The shires, hearing of it, grow nostalgic for the king — a feeling the surveyor notes that they have never before experienced.`,
+            fx: () => ({ d: { folk: 5 }, karma: 'mercy', chron: 'The census was refused; the rolls stay pleasantly vague.' })
+          } ]
+      });
+
+      T({
+        id: 'widow', cat: 'base', who: [ 'peasant' ],
+        text: s => `A widow of ${sV(s)} stands with the flattened fence of her field in her arms like a harp: the crown's own hunt rode through her beans on Tuesday, hounds first, king's men after. "I know what is owed to kings," she says, eyes down, "and I am asking for the smaller sum."`,
+        choices: [
+          {
+            label: 'Pay her from the privy purse',
+            out: `The sum is small; the scandal is not. That the crown should pay a widow, from its own hand, for its own damage — the hall is quiet with astonishment, and the widow curtsies so low her knee touches the stone.`,
+            fx: () => ({ d: { gold: -4, folk: 7 }, karma: 'mercy', chron: 'The crown paid a widow for its own hunt\u2019s damage, to the realm\u2019s astonishment.' })
+          },
+          {
+            label: 'Kings do not pay for fields',
+            out: `The fence is carried out under the arm it came in under. She goes down the road slowly, and the story goes faster — and by spring, in three shires, "the widow\u2019s beans" means any small wrong the great do without counting.`,
+            fx: () => ({ d: { folk: -7 }, karma: 'iron', anger: 1 })
+          } ]
+      });
+
+      T({
+        id: 'falcon', cat: 'base', who: [ 'knight', 'soldier' ],
+        text: () => 'The crown\u2019s white gyrfalcon — a present from a foreign king, worth more prestige than the sheriff\u2019s whole county — has slipped the jess and gone high into the bishop\u2019s woods. The falconer is ruined in advance and already holding out his hat for the coins of pity.',
+        choices: [
+          {
+            label: 'A bounty for the bird',
+            out: `Half the shire goes into the woods whistling. The bird is brought back on the third day by a miller\u2019s boy, who is paid, knighted in jest by the crowd, and warned about the miller. The glove feels the weight of her again by dusk.`,
+            fx: () => ({ d: { gold: -6, army: 2, folk: 2 }, karma: 'gold', chron: 'A bounty brought the gyrfalcon home to the glove.' })
+          },
+          {
+            label: 'Let the wild keep her',
+            out: `The falconer weeps once, professionally, and is given a hawk of lesser wonder and greater patience. On clear days he watches the treeline and says nothing, and the court lets him.`,
+            fx: () => ({ d: { army: -4, faith: 1 }, karma: 'mercy', chron: 'The gyrfalcon went to the wild, and the falconer to lesser hawks.' })
+          } ]
+      });
+
+      T({
+        id: 'watch', cat: 'base', who: [ 'peasant', 'merchant' ],
+        text: s => `The town council of ${sV(s)} petitions for a funded night-watch: lanterns, a bell, twelve honest men and four honesty-adjacent ones. "The roads are safe, sire," their spokesman allows, "in the way that a cellar is dry — up to the water line."`,
+        choices: [
+          {
+            label: 'Fund the watch',
+            out: `The lanterns are lit within the month, and the bell — the town's old fire-bell, given a second trade — rings the hours in a voice everyone pretends isn't comforting. Trade improves; so does the sleep of the respectable.`,
+            fx: () => ({ d: { gold: -6, folk: 6, army: 1 }, karma: 'mercy', chron: 'The night-watch was funded: lanterns, a bell, and twelve men.' })
+          },
+          {
+            label: 'The constable’s box suffices',
+            out: `The petition is declined with a compliment on the town's general safety, which the town reads, correctly, as an invoice for its own wounds. The dark lanes stay dark, and the constable's box stays empty.`,
+            fx: () => ({ d: { folk: -6 }, karma: 'iron', anger: 1 })
+          } ]
+      });
+
+      T({
+        id: 'dream_father', cat: 'base', cond: s => s.turn >= 8,
+        text: () => 'No petitioner this morning — the hall is empty, and the scribe waits with a blank page, which is its own kind of event.',
+        out: () => 'The king dreams of his father: the old man at the coronation stone, turning the crown in his hands like a pot he is checking for cracks. "It fits everyone," he says, "that is the whole trouble with it." The king wakes with the candle drowned and the sentence kept.',
+        fx: () => ({})
+      });
+
+      /* ---------- marriage & heir ---------- */
+      T({
+        id: 'marriage', cat: 'base',
+        text: () => 'The council has, with the delicacy of men handling fire, assembled the question of marriage. Three names have survived their deliberations; each comes with a dowry of consequences. The chamberlain spreads the three letters on the table and retreats to a safe distance.',
+        choices: null
+      });
+      T({
+        id: 'heir_born', cat: 'thread',
+        text: () => 'A triumphant messenger at dawn, still in riding boots: the queen has been brought to bed — of a loud, red, entirely satisfactory child. The hall is already drunk. The heralds are already arguing about names, which is the crown\u2019s question to settle, and settle now.',
+        choices: null
+      });
+
+      /* ---------- conspiracy ---------- */
+      T({
+        id: 'con_w1', cat: 'thread',
+        text: () => `A whisper reaches the chamberlain by way of a laundress by way of nobody: a name, said twice in the same breath, in the same low voice, in two different taverns. The chamberlain reports it standing very straight, the way men report things they would rather not have heard.`,
+        choices: [
+          {
+            label: 'Look into it — quietly',
+            out: `A discreet man is paid a discreet sum. He returns with nothing actionable and one impression: the whisper has roots. Somebody, somewhere, is watering it.`,
+            fx: () => ({ d: { gold: -4 }, chron: 'The crown paid to hear a whisper, and heard only smoke.' })
+          },
+          {
+            label: 'Let it lie',
+            out: `The chamberlain is instructed to ignore tavern-talk, and does, loudly, in the manner of men who will later say they were never told. The whisper, untroubled, grows.`,
+            fx: () => ({ anger: 2 })
+          } ]
+      });
+      T({
+        id: 'con_w2', cat: 'thread', who: [ 'noble' ],
+        text: () => `The whispers have a shape now: meetings behind the tannery by night, a phrase — "the michaelmas business" — that stops when strangers come near. Someone in the dark is organizing unhappiness, and unhappiness has never wanted organizers.`,
+        choices: null
+      });
+      T({
+        id: 'con_plot', cat: 'thread',
+        text: (s, a, ev) => S.flags.known
+          ? `The watcher swears it on his life: the michaelmas business is real, dated, and armed. The names are the ones the crown already holds. What remains is the choosing — arrests, or mercy, or the terrible arithmetic of doing nothing and hoping the knife rusts.`
+          : `A conspirator has come to the postern at midnight, pale as his own conscience: the plot is real, the date is michaelmas, the purpose is a regicide. He will give the names — for money, or for nothing, or for whatever the king's face suggests. The crown must choose what to believe before it chooses what to do.`,
+        choices: [
+          {
+            label: 'Break the plot — arrests at dawn',
+            out: `The marshals move before first light. Cells fill with familiar faces; the tannery is searched; a bundle of pikes is found wrapped in altar linen, which even the cloister concedes looks bad. The court purrs. The shires watch, and count, and remember.`,
+            fx: () => ({ d: { folk: -5, army: 2 }, karma: 'iron', flag: { purged: 1, conDone: 1 }, chron: 'The plot was broken at dawn, and the cells were full of trusted faces.' })
+          },
+          {
+            label: 'Pardon them — feast instead of fetters',
+            out: `The conspirators are invited, by name, to a feast. They come pale. They leave paler. Nothing is said; everything is understood; the michaelmas business dissolves in a sauce of visible forgiveness and implied knives.`,
+            fx: () => ({ d: { gold: -9, folk: 6 }, karma: 'mercy', flag: { conDone: 1 }, chron: 'The crown answered a plot with a feast, and the plot starved.' })
+          },
+          {
+            label: 'It is tavern-talk. Do nothing.',
+            out: `The king rules it noise, and the court agrees at the correct volume. Somewhere past the stables, a candle that has been burning late goes out, satisfied.`,
+            fx: () => ({ th: [ { tpl: 'con_strike', delay: ri(3, 5) } ] })
+          } ]
+      });
+      T({
+        id: 'con_strike', cat: 'thread',
+        text: () => 'The candle stair, past midnight, on the king\u2019s private errand. A shadow detaches from the dark with a blade already moving — and there is one heartbeat in which the crown chooses how to die or not to.',
+        choices: [
+          {
+            label: 'Call the guard at your back',
+            out: () => ((S.flags.known || rnd() < 0.6)
+              ? `The guard comes at a crash of steel and finds an assassin very thoroughly arrested. The interrogations are brief and productive. By michaelmas the plot is a list of confiscations, and the stair has a lamp on every step.`
+              : `The guard is three steps too far. It is quick, and dark, and the chronicle's next page begins with a regnal number the scribe has to write through tears.`),
+            fx: () => ((S.flags.known || rnd() < 0.6) ? { d: { army: 2 }, karma: 'iron', flag: { conDone: 1, iron: 1 }, chron: 'The assassin was taken on the candle stair.' } : { end: 'betrayed' })
+          },
+          {
+            label: 'Walk down alone, unarmed',
+            out: () => ((S.stats.folk > 60 ? rnd() < 0.8 : rnd() < 0.5)
+              ? `The king walks into the dark with empty hands and his heartbeat as an escort. The blade stops — whether from mercy, awe, or the simple arithmetic of a beloved king, no one ever learns. The assassin kneels in the dark and weeps, and the reign owns the stair forever after.`
+              : `Empty hands meet a full blade. The last thing the dark holds is the king's own surprised breath. The chronicle, for once, has nothing wise to add.`),
+            fx: () => ((S.stats.folk > 60 ? rnd() < 0.8 : rnd() < 0.5) ? { d: { folk: 8 }, karma: 'mercy', flag: { conDone: 1, iron: 1 }, chron: 'The king walked unarmed into the dark, and came back owning the stair.' } : { end: 'betrayed' })
+          } ]
+      });
+
+      /* ---------- prophecies ---------- */
+      T({
+        id: 'prop_stag', cat: 'thread',
+        text: s => `The head huntsman bursts in still in his boots, hat in ruins in his hands: a white stag, white as salt, is standing in the palace garden drinking from the royal well. The whole household is at the windows. The wisewoman's words, spoken at the coronation, stand in the room like a fourth person.`,
+        choices: [
+          {
+            label: 'Lower the bows. Let it drink.',
+            out: `The huntsmen ground their weapons on the king's own order, and the garden holds its breath. The stag drinks its fill, looks once at the windows — at the king, everyone swears after — and steps back into the trees. That year the harvest fills, the sick recover, and nobody can prove anything.`,
+            fx: () => ({ d: { folk: 8, faith: 6 }, karma: 'mercy', flag: { prophecy: 1 }, mk: { i: 'stag', at: 'cap', dx: 44, dy: -30 }, chron: 'The white stag drank at the royal well, and the reign knew its golden season.' })
+          },
+          {
+            label: 'A stag for the feast tables.',
+            out: `It takes nine arrows and spoils two haunches, and the venison at the feast tastes — several guests say so quietly — of nothing at all. The well water, the gardeners notice, has gone flat.`,
+            fx: () => ({ d: { folk: -6, faith: -4 }, karma: 'iron', anger: 2, chron: 'The white stag was hunted. The well water never quite recovered.' })
+          } ]
+      });
+      T({
+        id: 'prop_raven', cat: 'thread',
+        text: () => `A raven comes down the chimney into the council chamber, supremely unbothered, wearing — there is no other word — a ring. A man's signet, tarnished black, bearing the seal of the first king of the line. The bird eats a chicken heart off the map table and will not be shooed. The wisewoman's words sit down at the table with it.`,
+        choices: [
+          {
+            label: 'Wear the old ring at court',
+            out: `The crown wears the first king's ring openly, and the court reads omens into every handshake. The cloister is enraptured; the old houses go quiet, recalculating. Something old has been acknowledged, and old things, once acknowledged, attend.`,
+            fx: () => ({ d: { faith: 8, folk: -3 }, karma: 'god', flag: { prophecy: 1 }, chron: 'The first king’s ring was worn again, and the old things attended.' })
+          },
+          {
+            label: 'Melt it down for the treasury',
+            out: `The ring goes into the crucible with the council watching, which is either courage or blasphemy depending on the pulpit. The gold is honest. The raven, refused the window, takes the chimney — and the pulpit takes its text from the ashes.`,
+            fx: () => ({ d: { gold: 9, faith: -6 }, karma: 'gold', chron: 'The old ring went to the crucible, and the sermons went to the ashes.' })
+          } ]
+      });
+      T({
+        id: 'prop_dry', cat: 'thread',
+        text: s => `The wells of the lower town have gone dry in the summer heat, all six, in a week — and the wisewoman's coronation words are being quoted in the streets with the confidence of people who always knew. The town's eyes are on the hill, where the royal cisterns sit three-quarters full.`,
+        choices: [
+          {
+            label: 'Open the royal cisterns',
+            out: `The sluices are cut at noon and the hill water runs brown-then-clear down into the lower town, and people stand in it up to their ankles and cheer the hill. The crown's own baths go shallow. Nobody at court mentions it twice.`,
+            fx: () => ({ d: { gold: -6, folk: 10 }, karma: 'mercy', flag: { prophecy: 1 }, chron: 'The royal cisterns were opened to the dry town, and the hill was cheered.' })
+          },
+          {
+            label: 'Bid the cloister pray for rain',
+            out: `The processions wind the town for nine days, dusty and sincere. On the ninth evening it rains like a judgment — upon the just and the tax rolls equally. The wells refill. The cisterns stay shut, and the shutness is remembered.`,
+            fx: () => ({ d: { faith: 6, folk: -8 }, karma: 'god', flag: { prophecy: 1 }, chron: 'The cloister prayed for rain, and the cisterns stayed shut.' })
+          } ]
+      });
+
+      /* ---------- crises ---------- */
+      T({
+        id: 'c_riot', cat: 'crisis', who: [ 'peasant' ], cond: s => s.stats.folk < 22,
+        text: s => `They burned the mill at ${sV(s)} in the night and danced in its light, and by morning half the shire's hungry are a marching hunger. The marshal reports a mob at the granary gate — armed with flails and absolutely nothing to lose — and the crowd's only banner is a black loaf on a pole.`,
+        choices: [
+          {
+            label: 'Buy grain from the guilds — any price',
+            out: `The guilds, being merchants, smell the smoke and treble their price. The treasury bleeds; the granary doors open; the black loaf comes down off the pole, and someone, insanely, sticks a sprig of green in its place.`,
+            fx: () => ({ d: { gold: -15, folk: 15 }, karma: 'mercy', chron: 'The crown bought bread at any price to quiet the hunger-march.' })
+          },
+          {
+            label: 'Break the mob with steel',
+            out: `The levy forms two ranks and does its bitter arithmetic. The square holds; the square disperses; the dead go uncounted and the hungry go home to hate efficiently. Order — of a kind — is restored by Candlemas.`,
+            fx: () => ({ d: { army: 5, folk: -11 }, karma: 'iron', anger: 3, chron: 'Steel was sent against the hungry.' })
+          } ]
+      });
+      T({
+        id: 'c_saint', cat: 'crisis', who: [ 'priest' ], cond: s => s.stats.folk > 84,
+        text: s => `The love of the people has passed through devotion into something the cloister no longer controls. Pilgrims touch the king's gate-post; a woman in ${sV(s)} sells parings of the royal well-rope as relics; the word "saint" is now said in markets without irony.`,
+        choices: [
+          {
+            label: 'Wear the halo',
+            out: `The crown leans into the light. Crowds are blessed, gate-posts are kissed, and for one burning season the kingdom is a church and the king its altar — while the cloister watches its own pews empty, and files it away.`,
+            fx: () => ({ d: { folk: 4, faith: -9 }, karma: 'mercy', chron: 'The crown accepted the halo.' })
+          },
+          {
+            label: '“I am flesh, as you are.”',
+            out: `The king says it plainly, from the hall steps, and eats a common loaf where all can see. The devotion cools — devotion always cools when it meets arithmetic — and the cloister, relieved, warms several degrees.`,
+            fx: () => ({ d: { folk: -8, faith: 9 }, karma: 'god', chron: 'The king ate a common loaf and declined to be a saint.' })
+          } ]
+      });
+      T({
+        id: 'c_broke', cat: 'crisis', who: [ 'soldier' ], cond: s => s.stats.gold < 20,
+        text: () => 'The garrison\u2019s pay is three months behind, and soldiers\u2019 patience is a currency too. The senior levy reports the mood at the pay-chest: some men talk of going home to the harvest; others, more usefully and more dangerously, of taking their arrears from the town below in whatever coin it keeps.',
+        choices: [
+          {
+            label: 'Grant the levies land instead of coin',
+            out: `The crown commons are surveyed and cut: a holding for each season owed. The levies mutter — land cannot buy boots — but land can feed a family, and by spring the muttering has put down literal roots. The town below, unaware how close it came, grumbles about fences.`,
+            fx: () => ({ d: { army: 7, folk: -7 }, karma: 'mercy', chron: 'The unpaid levies were paid in land.' })
+          },
+          {
+            label: 'Let them go; the crown cannot buy a wall',
+            out: `The pay-chest is declared, honestly, empty. A third of the levy marches home whistling, a third stays for love of the thing, and a third is last seen at dusk on the south road — in formation, unpaid, and extremely organized.`,
+            fx: () => ({ d: { army: -11 }, karma: 'iron', chron: 'The garrison was dismissed unpaid.' })
+          } ]
+      });
+      T({
+        id: 'c_hoard', cat: 'crisis', who: [ 'peasant' ], cond: s => s.stats.gold > 84,
+        text: () => 'The vaults are so full the counting-house has run out of iron-bound chests and begun using wine-casks. Meanwhile the hearth-tax rolls on, and in the shires a bitter rhyme is going around about a king who counts in the dark — the grocer\u2019s boy sings the version with the casks. The crown, it is gently suggested, should be seen spending.',
+        choices: [
+          {
+            label: 'Remit the hearth-tax for a year',
+            out: `The writ goes out at the spring fair, read aloud at every market cross, and the effect on the shires is remarkable: the rhyme about casks acquires a second verse in which the king returns the casks. Full granaries, it turns out, sing better than full vaults.`,
+            fx: () => ({ d: { gold: -14, folk: 12 }, karma: 'mercy', chron: 'The hearth-tax was remitted for a year.' })
+          },
+          {
+            label: 'Gild the throne and the hall doors',
+            out: `The work is exquisite and the smiths are paid famously, but the hall now blazes like a reliquary in a hungry country. The rhyme acquires its final verse that winter, and it is not sung quietly.`,
+            fx: () => ({ d: { folk: -10, faith: 3 }, karma: 'gold', anger: 2, chron: 'The throne was gilded while the shires sang.' })
+          } ]
+      });
+      T({
+        id: 'c_interdict', cat: 'crisis', who: [ 'priest' ], cond: s => s.stats.faith < 22,
+        text: () => 'An ultimatum arrives from the metropolitans\u2019 synod in fine decretal hand: restore the crown\u2019s lapsed tithes and obedience, or the churches of the realm will be closed door to door — no mass, no bells, no marriages, the sacraments withdrawn from a kingdom that has forgotten its ledger with heaven.',
+        choices: [
+          {
+            label: 'Kneel; restore the tithe',
+            out: `The crown's obedience is performed with ceremony enough to preserve face: the tithe restored, the decretal kissed, the bells allowed their Easter. The cloister is magnanimous in the way of creditors repaid — which is to say, thoroughly, and with the account kept.`,
+            fx: () => ({ d: { gold: -10, faith: 13, folk: -3 }, karma: 'god', chron: 'The tithe was restored under threat of interdict.' })
+          },
+          {
+            label: '“The crown bows to no crozier.”',
+            out: `The bells fall silent that Sunday, all of them, in one astonishing coordinated morning. The kingdom discovers how much of its time was kept by bells. Markets go astray, marriages wait, and the quiet itself begins to preach.`,
+            fx: () => ({ d: { faith: -9, folk: 5 }, karma: 'iron', chron: 'The crown defied the interdict, and the bells went silent.' })
+          } ]
+      });
+      T({
+        id: 'c_inquis', cat: 'crisis', who: [ 'priest' ], cond: s => s.stats.faith > 84,
+        text: () => 'The cloister, flushed with power, offers the crown its sharpest tool: a traveling inquisition, licensed to root out heresy, folk-practice, and unlicensed wisewomen wherever found. The commission awaits the royal seal, and the first three suspects have already been chosen — one of them, troublingly, the herb-seller who cured the abbot\u2019s piles.',
+        choices: [
+          {
+            label: 'Unchain the inquisition',
+            out: `The commissioners ride out with blank warrants and full purses. Heresy is found wherever looked for, which is the trouble with looking. The cloister's power grows fat and articulate; the shires grow quiet in a way that is not peace.`,
+            fx: () => ({ d: { faith: 4, folk: -12 }, karma: 'god', chron: 'The inquisition rode out with blank warrants.' })
+          },
+          {
+            label: '“God has whips enough.”',
+            out: `The commission is returned unsealed. The cloister's sermons that season find their way, with doctrinal precision, to the subject of kings who love their subjects more than God.`,
+            fx: () => ({ d: { faith: -9, folk: 8 }, karma: 'mercy', chron: 'The inquisition was refused its warrants.' })
+          } ]
+      });
+      T({
+        id: 'c_raiders', cat: 'crisis', who: [ 'soldier' ], cond: s => s.stats.army < 22,
+        text: () => 'Long sails in the river mouth at first light: three ships, then five, then the beacons. The levy that should have manned the palisade has melted to harvests that never came, and the crown\u2019s arithmetic is laid out without varnish — hired spears now, or the fyrd scraped together now, or whatever the ships decide by noon.',
+        choices: [
+          {
+            label: 'Hire the Free Company — any price',
+            out: `The Company's captain names a figure that would embarrass a bishop and is paid it. By evening his spears hold the palisade; by week's end the longships are out of the river; by month's end the crown has discovered what "any price" looks like written down.`,
+            fx: () => ({ d: { gold: -14, army: 12 }, karma: 'gold', chron: 'The Free Company was hired against the longships.' })
+          },
+          {
+            label: 'Raise the fyrd in haste',
+            out: `Farmhands come up from the shires with flails, billhooks, and the terror of the summoned. The palisade holds — barely, at night, to the sound of somebody's grandmother singing the old warding-song from the wall — and the harvest behind them rots in the fields it was abandoned for.`,
+            fx: () => ({ d: { army: 6, folk: -7, gold: -4 }, karma: 'iron', mk: { i: 'ship', at: 'sea' }, chron: 'The fyrd was raised in haste against the sails.' })
+          } ]
+      });
+      T({
+        id: 'c_coup', cat: 'crisis', who: [ 'noble' ], cond: s => s.stats.army > 84,
+        text: (s, a) => `The Marshal has taken to riding a hundred lances past the king\u2019s window every morning at exercise, in perfect order — which is either loyalty performed at volume or a message at a trot. ${a.name} requests, with courtesy that has stopped pretending to be casual, a war: "Glory, sire. Or the lances will find their own use for the spring."`,
+        choices: [
+          {
+            label: 'Post the Marshal to a far command',
+            out: `${a.name} is given a border, a title, and three weeks of distance. The lances scatter to their new cantonments; the morning parade past the window, it is noticed, has stopped. The crown sleeps better and guards heavier.`,
+            fx: (s, a) => ({ d: { army: -10 }, st: -2, karma: 'mercy' })
+          },
+          {
+            label: 'Give the lances their war',
+            out: `The banners go up along the march in a movement the court watches the way one watches weather. The levy is joyful, armed, and pointed away from the keep — which is, the scribe notes, two of the three things a wise crown wants from its army.`,
+            fx: () => ({ d: { gold: -6, army: 3 }, karma: 'iron', th: [ { tpl: 'war', delay: ri(5, 7), actor: 1 } ], chron: 'The lances were given their war.' })
+          } ]
+      });
+      T({
+        id: 'war', cat: 'thread',
+        text: (s, a) => `The campaign's dispatches have stopped, and the waiting court takes it badly. Then ${a.name} — mud to the crest, cloak torn, grinning like a raid — is announced at the hall doors, with the fate of the spring in one saddlebag.`,
+        choices: [
+          {
+            label: '“Report. All of it.”',
+            out: (s, a) => s.stats.army >= 50
+              ? `The saddlebag gives up the border lords' seals, the raiders' burned beacons, and a casualty list short enough to read aloud. The campaign, against all season, has held: the march is the crown's, the lances are fed on victory, and ${a.name} kneels to be thanked like a man who intends to enjoy it.`
+              : `The saddlebag gives up a shield-boss, a dead man's mail-shirt, and the truth: the march swallowed the spring whole. What came home is enough to guard, not enough to glory, and ${a.name} reports it standing very straight, like a wound that will not close politely.`,
+            fx: s => ({ d: s.stats.army >= 50 ? { gold: 10, army: -5, folk: 7 } : { gold: -6, army: -7, folk: -6 }, chron: 'The spring war came home.' })
+          },
+          {
+            label: '“Come home. Enough.”',
+            out: (s, a) => `The recall goes out by fast horse. The lances return with their plunder, their songs, and their appetite intact but unblessed by any certified victory — a dangerous thing, a hungry army home early, ${a.name} observes, saluting perhaps a shade too slowly.`,
+            fx: () => ({ d: { gold: 4, army: -4, folk: -2 }, karma: 'mercy' })
+          } ]
+      });
+
+      /* ---------- wonders ---------- */
+      const WONDERS = [
+        {
+          id: 'cath', n: 'the Great Cathedral', per: 11, cls: 'priest',
+          pitch: 'pilgrims, bells heard in the next kingdom, and the quiet envy of three archbishops'
+        },
+        {
+          id: 'road', n: 'the Royal Road', per: 9, cls: 'merchant',
+          pitch: 'stone from the capital to the marches, tolls forever, and rumor travelling at the speed of a fast horse'
+        },
+        {
+          id: 'acad', n: 'the Grand Academy', per: 12, cls: 'noble',
+          pitch: 'learned men, learned arguments, and answers to questions the realm has not thought to ask yet'
+        } ];
+      const WONDERMAP = {}; WONDERS.forEach(w => WONDERMAP[ w.id ] = w);
+      T({
+        id: 'wonder', cat: 'base',
+        text: (s, a, ev) => `The case for ${ev.w.n} is laid before the crown with diagrams, quotations, and one very confident estimate: ${ev.w.pitch}. The cost at least is honest — ${ev.w.per} gold a year for three years, from a treasury that does not yet know.`,
+        choices: null
+      });
+      T({
+        id: 'wdone', cat: 'thread',
+        text: (s, a, ev) => `Three years of scaffolds, disputes, and one satirical ballad about the expense — and now it is done. ${ev.w.n.charAt(0).toUpperCase() + ev.w.n.slice(1)} stands finished, and the realm comes out to stare at what its coin became.`,
+        out: (s, a, ev) => ({
+          cath: 'The bells are rung for an hour without stopping. Travelers will say, for a hundred years, that they heard the crown of ' + S.kingdom + ' before they saw it.',
+          road: 'The first mail rides the whole length in a day and a half. Distance, which was once a fact of life, has become a rumor of itself.',
+          acad: 'The first lecture is on water-clocks and overruns by an hour. The second, by popular demand, is on anything at all.'
+        }[ ev.w.id ]),
+        fx: (s, a, ev) => ({
+          cath: { d: { faith: 12 }, chron: 'The Great Cathedral was consecrated; the bells carried to the next kingdom.' },
+          road: { d: { folk: 8, gold: 4 }, chron: 'The Royal Road was finished: dust, then mud, then memory.' },
+          acad: { d: { folk: 4, faith: 4 }, chron: 'The Grand Academy opened its doors, and its questions.' }
+        }[ ev.w.id ])
+      });
+
+      TPL.forEach(t => TPLMAP[ t.id ] = t);
+
+      /* ============ §4 META TABLES ============ */
+      const CONSORTS = [
+        { tag: 'a princess of the war-marches, raised in the saddle', key: 'army', per: '+2 army each year' },
+        { tag: 'an heiress of the river guilds, arithmetic in her eyes', key: 'gold', per: '+2 gold each year' },
+        { tag: 'a cloister-raised lady the bishops bless by name', key: 'faith', per: '+2 faith each year' },
+        { tag: 'a common-born lady beloved at the markets', key: 'folk', per: '+2 folk each year' } ];
+      const PROPS = [
+        { text: () => '“When a white stag walks the palace garden and drinks from the royal well, this reign shall know a golden season.”', full: 'prop_stag' },
+        { text: () => '“When a raven bearing a ring of the old kings comes down the chimney, the crown shall be weighed — and found wanting, or worthy.”', full: 'prop_raven' },
+        { text: () => '“When the wells of the lower town run dry in summer, the king shall choose what a crown is for.”', full: 'prop_dry' } ];
+      function genProp() { const p = pick(PROPS); return { text: p.text(), full: p.full }; }
+
+      const SCENARIOS = [
+        {
+          n: 'The Sword Inherited', mod: { army: 18, gold: -10 },
+          d: 'The old king\u2019s marshals salute you on sight; his creditors also know your face, from a distance.'
+        },
+        {
+          n: 'The People\u2019s Cousin', mod: { folk: 18, army: -8 },
+          d: 'The shires drank at your accession for a week. The wall watch drank harder, unpaid.'
+        },
+        {
+          n: 'The Cloister\u2019s Ward', mod: { faith: 18, folk: -8 },
+          d: 'Raised by monks; the bishops call you son, the villages do not yet call you anything.'
+        } ];
+
+      const ENDINGS = {
+        gold_low: [ 'the Beggar’s King', 'No coin remained to pay the watch. On a still night the gates were opened from the inside, and the king woke to torchlight in the counting-room. The chronicle records, with terrible economy, that the treasury outlived the crown.' ],
+        gold_high: [ 'the Gilded Leech', 'The vaults brimmed while the fields went bare, and the rhyme about the casks stopped rhyming because it stopped being funny. They came with hammers and unbricked the treasury stone by stone. The king was found beneath the floor he loved best — rich to the last inch.' ],
+        folk_low: [ 'the Starving', 'No decree fills a belly. The villages emptied into the woods ahead of the tax rolls, and the last petitioner left the hall without bowing — a first. When the crown called for bread, the echo answered, and the echo had excellent lawyers.' ],
+        folk_high: [ 'the Hollow Saint', 'They loved the king past all reason, and love past reason curdles. Crowds carried the throne through the streets like a relic, chanting decrees the crown had never made. A king adored is a king replaced; the halo, it turned out, was a yoke.' ],
+        faith_low: [ 'the Godless', 'The bells fell silent across the realm, and the quiet preached better than any friar. The interdict turned harvests into judgments and judgments into a crowd, and the crowd came to the keep with relics in one hand and rope in the other.' ],
+        faith_high: [ 'the Anointed Puppet', 'Every decree was drafted in the scriptorium before it reached the throne, and the throne learned to initial without reading. In the end the cloister stopped pretending, and the king was left the vestments, the title, and nothing else at all.' ],
+        army_low: [ 'the Shieldless', 'The levy had gone home to harvests that never came. When the sails entered the river mouth there was no one on the wall to count them — only a king on an undefended tower, watching the ships multiply like punctuation at the end of a sentence.' ],
+        army_high: [ 'the Marshal’s King', 'The lances loved their Marshal, and the Marshal remembered their pay more punctually than the crown ever had. One autumn morning they formed before the keep — not for review. The king was permitted a quiet room, a long retirement, and a very short chronicle.' ],
+        age: [ 'the Old King', 'The king died in bed, of winter, at a great age — which in this trade is a triumph. The bell tolled ninety times and meant every one of them. The shires drank to the old man for a week, and the drinks were on nobody in particular, which is how he would have wanted it.' ],
+        line_end: [ 'the Last of the Line', 'The king died without issue, as the last leaf falls — legally, quietly, and to no successor. Distant cousins materialized within the week with genealogies long enough to garrote with. The crown sat on the table between them, and the chronicle closed its book.' ],
+        betrayed: [ 'the Betrayed', 'The knife came from inside, as the wise always said it would — from the court, the household, the candle stair itself. The scribe wrote the entry in a hand that shook only at the name. The bells rang backwards that night, and everyone understood exactly what was meant.' ]
+      };
+
+      const ACHS = [
+        { id: 'first', n: 'The First Decree', c: s => s.judged >= 1 },
+        { id: 'wed', n: 'A Crown Wed', c: s => !!s.spouse },
+        { id: 'heir', n: 'The Line Continues', c: s => !!s.heir },
+        { id: 'y5', n: 'Five Winters', c: s => s.year >= 5 },
+        { id: 'y10', n: 'Ten Winters', c: s => s.year >= 10 },
+        { id: 'saint', n: 'Beloved of the People', c: s => s.stats.folk >= 90 },
+        { id: 'vault', n: 'Full Coffers', c: s => s.stats.gold >= 90 },
+        { id: 'pious', n: 'Blessed of the Cloister', c: s => s.stats.faith >= 90 },
+        { id: 'warlord', n: 'Master of the Levy', c: s => s.stats.army >= 90 },
+        { id: 'seer', n: 'The Omen Fulfilled', c: s => s.flags.prophecy },
+        { id: 'purge', n: 'The Plot Broken', c: s => s.flags.purged },
+        { id: 'iron', n: 'Nerves of Iron', c: s => s.flags.iron },
+        { id: 'scribe', n: 'The Scribe’s Reader', c: s => s.flags.readChron },
+        { id: 'cart', n: 'The Map Reader', c: s => s.flags.sawMap },
+        { id: 'gazer', n: 'The Court Observed', c: s => s.flags.sawFaces },
+        { id: 'mason', n: 'A Wonder Raised', c: s => s.flags.wonderAny },
+        { id: 'gentle', n: 'The Gentle Hand', c: s => (s.karma && s.karma.mercy || 0) >= 8 },
+        { id: 'stern', n: 'The Stern Hand', c: s => (s.karma && s.karma.iron || 0) >= 8 },
+        { id: 'dyn2', n: 'The Second Reign', c: s => s.dyn.length >= 1 },
+        { id: 'dyn3', n: 'The Third Reign', c: s => s.dyn.length >= 2 } ];
+
+      /* ============ §5 STATE & SAVE SYSTEM ============ */
+      let S = null, EV = null, PHASE = 'idle', selScen = 0, busy = false, endHandled = false;
+      let L = { ach: [], hist: [] };
+      try { const d = JSON.parse(localStorage.getItem(LEGACY_KEY)); if (d && Array.isArray(d.ach)) L = { ach: d.ach.slice(0, 64), hist: (d.hist || []).slice(-HIST_CAP) }; } catch (e) { }
+      function saveLegacy() { try { localStorage.setItem(LEGACY_KEY, JSON.stringify(L)); } catch (e) { } }
+
+      function patchSave(d) {
+        d.v = SAVE_VERSION;
+        d.king = d.king || null;
+        d.stats = d.stats || { gold: 50, folk: 50, faith: 50, army: 50 };
+        STATS.forEach(k => { if (typeof d.stats[ k ] !== 'number') d.stats[ k ] = 50; });
+        d.year = d.year || 1; d.age = d.age || 25; d.turn = d.turn || 0; d.turnInYear = d.turnInYear || 0;
+        d.judged = d.judged || 0; d.alive = d.alive !== false;
+        d.flags = d.flags || {}; d.recent = (d.recent || []).slice(-7);
+        d.chars = (d.chars || []).filter(c => c && c.name).map(c => ({ ...c, hist: c.hist || [] }));
+        d.chron = (d.chron || []).filter(c => c && typeof c.t === 'string').slice(-600);
+        d.dyn = (d.dyn || []).slice(-HIST_CAP);
+        d.spouse = d.spouse || null; d.heir = d.heir || null;
+        d.anger = d.anger || 0; d.conProg = d.conProg || 0;
+        d.karma = d.karma || { mercy: 0, iron: 0, gold: 0, god: 0 };
+        d.map = d.map || {}; d.mapSea = d.mapSea || []; d.capIcons = d.capIcons || [];
+        d.wonder = d.wonder || null; d.wondersDone = d.wondersDone || [];
+        d.prop = d.prop || genProp(); d.lastV = d.lastV || ''; d.scen = d.scen || '';
+        d.threads = (d.threads || []).filter(t => t && TPLMAP[ t.tpl ]);
+        dedupeThreads(d);
+        return d;
+      }
+      function dedupeThreads(st) {
+        const seen = new Map();
+        for (const t of st.threads)
+        {
+          if (!t || !TPLMAP[ t.tpl ]) continue;
+          if (!seen.has(t.tpl) || seen.get(t.tpl).delay > t.delay) seen.set(t.tpl, t);
+        }
+        let arr = [ ...seen.values() ];
+        if (arr.length > MAX_THREADS)
+        {
+          const keep = arr.filter(t => t.tpl.indexOf('con_') === 0);
+          const rest = arr.filter(t => keep.indexOf(t) < 0).slice(0, MAX_THREADS - keep.length);
+          arr = keep.concat(rest);
+        }
+        st.threads = arr;
+      }
+      function saveGame() {
+        try { if (S && S.alive) { S.v = SAVE_VERSION; localStorage.setItem(SAVE_KEY, JSON.stringify({ ...S, rs: _s })); } } catch (e) {/* quota or private mode: reign continues unsaved */ }
+      }
+      function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }
+      function loadGame() {
+        try
+        {
+          const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null;
+          const d = JSON.parse(raw);
+          if (!d || !d.king || !d.stats) return null;
+          return patchSave(d); // older saves are migrated forward; unknown fields defaulted
+        } catch (e) { return null; }
+      }
+
+      function freshGame() {
+        srand((Date.now() ^ (Math.random() * 1e9)) >>> 0);
+        const k = { first: pick(KFIRST), num: pick(KNUM), house: pick(HOUSES), kingdom: pick(KINGDOMS) };
+        const prop = genProp();
+        S = {
+          v: SAVE_VERSION, king: k, kingdom: k.kingdom, year: 1, age: ri(18, 30), turn: 0, turnInYear: 0, judged: 0, alive: true,
+          stats: { gold: 50, folk: 50, faith: 50, army: 50 }, flags: {}, threads: [], recent: [], chars: [], chron: [], dyn: [],
+          spouse: null, heir: null, anger: 0, conProg: 0, karma: { mercy: 0, iron: 0, gold: 0, god: 0 },
+          map: {}, mapSea: [], capIcons: [], wonder: null, wondersDone: [], prop, lastV: '', scen: '', pendingEnd: null
+        };
+        S.threads.push({ tpl: prop.full, delay: ri(10, 20) });
+        $('mainArea').setAttribute('data-letter', S.kingdom[ 0 ]);
+        return S;
+      }
+      function applyScen(i) {
+        const sc = SCENARIOS[ i ]; if (!sc || !S) return;
+        for (const k in sc.mod) S.stats[ k ] = clamp(S.stats[ k ] + sc.mod[ k ], 8, 92);
+        S.scen = sc.n;
+        addChron('Came to the throne as ' + sc.n.toLowerCase() + '.');
+        renderStats();
+      }
+      function getActor(cls) {
+        const cands = S.chars.filter(c => c.cls === cls);
+        if (cands.length && rnd() < 0.35) return pick(cands);
+        if (S.chars.length >= MAX_CHARS)
+        {
+          const reuse = cands.length ? cands : S.chars;
+          return pick(reuse); // the hall is only so large; familiar faces return
+        }
+        const trait = pick(TRAITS);
+        const a = {
+          id: S.chars.length, cls, name: pick(NAMES[ cls ] || NAMES.peasant), trait,
+          standing: ({ loyal: 1, kind: 1, wrathful: -1, proud: -1 })[ trait ] || 0, home: V(), hist: []
+        };
+        a.title = TITLES[ cls ] ? TITLES[ cls ](a) : 'of the realm';
+        S.chars.push(a); return a;
+      }
+      function scribbleActor() { return { id: -1, name: 'The Scribe’s Pen', cls: 'scribe', title: 'what happened while the court looked away', trait: 'kind', standing: 0, home: '', hist: [] }; }
+      function conNames() {
+        const roles = [ 'the under-steward', 'a captain of the wall', 'the abbey\u2019s bailiff', 'the keeper of the wine', 'a clerk of the signet' ];
+        const out = []; const pool = [ ...roles ];
+        for (let i = 0; i < 3; i++) { out.push(pick(NAMES.noble).replace(/^(Lady|Lord|Sir) /, '') + ', ' + pool.splice(Math.floor(rnd() * pool.length), 1)[ 0 ]); }
+        return out;
+      }
+
+      /* ============ §6 PORTRAITS & SIGILS ============ */
+      const SKIN = [ '#e9c69c', '#dcb086', '#c39467', '#9a6b44' ];
+      const HAIRC = [ '#2e2117', '#4a3016', '#6e4a1f', '#8f8578', '#c2b8a4' ];
+      const TINT = { peasant: '#77804f', merchant: '#8a6a33', noble: '#7a4050', priest: '#4a463c', soldier: '#5f666e', witch: '#5a5648', minstrel: '#7d5c2c', orphan: '#8a815f', bandit: '#3f3c38', knight: '#565860', scribe: '#6e6a58' };
+      const GARMENT = { peasant: '#6a6f45', merchant: '#7a5a2a', noble: '#7a4050', priest: '#3a362e', soldier: '#5f666e', witch: '#4a4438', minstrel: '#8a5a2c', orphan: '#8a815f', bandit: '#3c3a34', knight: '#565860', scribe: '#57503e' };
+      function portraitSVG(a) {
+        const r = mkRng(((a.id + 1) * 2654435761) >>> 0 || 13);
+        const sk = pk(r, SKIN), hr = pk(r, HAIRC), cl = a.cls;
+        const bearded = ([ 'peasant', 'soldier', 'bandit', 'knight', 'scribe' ].indexOf(cl) >= 0 && r() < 0.75) || (cl === 'merchant' && r() < 0.3);
+        const mouth = a.standing > 0 ? 'M43,63 Q50,68.5 57,63' : a.standing < 0 ? 'M43,65 Q50,60.5 57,65' : 'M43,64 H57';
+        const angry = a.trait === 'wrathful';
+        let hat = '';
+        if (cl === 'peasant')
+        {
+          const c = pk(r, [ '#6a6f45', '#5c5138', '#6e5a3a' ]);
+          hat = `<path d="M29,52 Q27,20 50,19 Q73,20 71,52 L66,54 Q62,38 50,38 Q38,38 34,54 Z" fill="${c}" stroke="#2a2018" stroke-width="2"/>`;
+        }
+        else if (cl === 'witch') { hat = `<path d="M30,50 Q29,20 50,19 Q71,20 70,50 L64,52 Q60,36 50,36 Q40,36 36,52 Z" fill="#4a4438" stroke="#2a2018" stroke-width="2"/><circle cx="35" cy="55" r="3" fill="#4a4438" stroke="#2a2018" stroke-width="1.5"/>`; }
+        else if (cl === 'merchant' || cl === 'noble')
+        {
+          const c = cl === 'noble' ? '#6b3546' : '#8a6a33';
+          hat = `<path d="M31,42 Q33,21 50,20 Q67,21 69,42 Q50,34 31,42 Z" fill="${c}" stroke="#2a2018" stroke-width="2"/><path d="M67,30 Q80,26 78,44 Q74,36 66,38 Z" fill="${c}" stroke="#2a2018" stroke-width="1.6"/>`;
+          if (cl === 'noble') hat += `<path d="M66,26 Q84,10 88,14 Q76,22 68,32" fill="none" stroke="#d8d2c0" stroke-width="3"/><path d="M66,26 Q84,10 88,14" fill="none" stroke="#2a2018" stroke-width="1"/>`;
+        }
+        else if (cl === 'priest') { hat = `<ellipse cx="50" cy="33" rx="10.5" ry="8" fill="${sk}"/><path d="M33,45 Q33,30 50,29 Q67,30 67,45" fill="none" stroke="${hr}" stroke-width="7" stroke-linecap="round"/>`; }
+        else if (cl === 'soldier') { hat = `<path d="M31,42 Q50,17 69,42 Z" fill="#666b70" stroke="#2a2018" stroke-width="2"/><rect x="25" y="40" width="50" height="5.5" rx="2.7" fill="#565b60" stroke="#2a2018" stroke-width="1.6"/>`; }
+        else if (cl === 'bandit') { hat = `<path d="M28,56 Q26,16 50,15 Q74,16 72,56 Q68,60 66,54 Q64,36 50,36 Q36,36 34,54 Q32,60 28,56 Z" fill="#3c3a34" stroke="#2a2018" stroke-width="2"/><ellipse cx="50" cy="50" rx="15" ry="15" fill="rgba(0,0,0,.18)"/>`; }
+        else if (cl === 'knight') { hat = `<path d="M33,54 Q31,20 50,19 Q69,20 67,54 Q62,40 50,40 Q38,40 33,54 Z" fill="#7a7d82" stroke="#2a2018" stroke-width="2"/>`; }
+        else if (cl === 'minstrel') { hat = `<path d="M32,40 Q34,22 50,21 Q66,22 68,40 Q50,33 32,40 Z" fill="#7d5c2c" stroke="#2a2018" stroke-width="2"/><path d="M64,28 Q82,12 87,17 Q76,24 67,34" fill="none" stroke="#d8d2c0" stroke-width="3"/>`; }
+        else if (cl === 'orphan') { hat = `<path d="M33,46 L36,32 L40,42 L45,28 L49,40 L54,28 L59,41 L64,32 L67,46 Q50,36 33,46 Z" fill="${hr}" stroke="#2a2018" stroke-width="1.6"/>`; }
+        else if (cl === 'scribe') { hat = `<path d="M34,46 Q34,26 50,25 Q66,26 66,46 Q50,38 34,46 Z" fill="#57503e" stroke="#2a2018" stroke-width="2"/>`; }
+        const beard = bearded ? `<path d="M36,56 Q37,76 50,78 Q63,76 64,56 Q58,66 50,66 Q42,66 36,56 Z" fill="${hr}" stroke="#2a2018" stroke-width="1.5"/>` : '';
+        let marks = '';
+        if (angry) marks += `<path d="M60,46 L64.5,60" stroke="#8e2f21" stroke-width="1.4"/>`;
+        if (a.trait === 'cunning' && r() < 0.5) marks += `<circle cx="58.5" cy="62" r="1.1" fill="#2a2018"/>`;
+        const hair = ([ 'priest', 'orphan', 'soldier', 'knight' ].indexOf(cl) < 0) ? `<path d="M32.5,48 Q34,30 50,29 Q66,30 67.5,48 Q62,38 50,37.5 Q38,38 32.5,48 Z" fill="${hr}" stroke="#2a2018" stroke-width="1.5"/>` : '';
+        return `<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="${TINT[ cl ] || '#77705a'}"/>
+    <path d="M20,116 L26,86 Q50,74 74,86 L80,116 Z" fill="${GARMENT[ cl ] || '#666'}" stroke="#2a2018" stroke-width="2"/>
+    ${cl === 'noble' ? `<path d="M24,102 Q50,92 76,102 L76,110 Q50,100 24,110 Z" fill="#e6ddc8" stroke="#2a2018" stroke-width="1.5"/>` : ''}
+    ${cl === 'priest' ? `<path d="M46,92 h8 M50,88 v8" stroke="#c9b27a" stroke-width="1.6"/>` : ''}
+    ${cl === 'scribe' ? `<path d="M30,104 L44,84 L48,88 L34,108 Z" fill="#e6ddc8" stroke="#2a2018" stroke-width="1.5"/><path d="M44,84 L56,70 Q60,66 58,72 L48,88 Z" fill="#d8d2c0" stroke="#2a2018" stroke-width="1.5"/>` : ''}
+    <ellipse cx="32.5" cy="52" rx="2.5" ry="4" fill="${sk}" stroke="#2a2018" stroke-width="1.5"/>
+    <ellipse cx="67.5" cy="52" rx="2.5" ry="4" fill="${sk}" stroke="#2a2018" stroke-width="1.5"/>
+    <ellipse cx="50" cy="52" rx="17.5" ry="21" fill="${sk}" stroke="#2a2018" stroke-width="2"/>
+    ${hair}${beard}
+    ${angry ? `<path d="M40,43.5 L47,46.5" stroke="#2a2018" stroke-width="2"/><path d="M60,43.5 L53,46.5" stroke="#2a2018" stroke-width="2"/>`
+            : `<path d="M39.5,45 L47,45.8" stroke="#2a2018" stroke-width="2"/><path d="M60.5,45 L53,45.8" stroke="#2a2018" stroke-width="2"/>`}
+    <circle cx="43.5" cy="49.5" r="1.7" fill="#2a2018"/><circle cx="56.5" cy="49.5" r="1.7" fill="#2a2018"/>
+    <path d="M50,50 Q51.5,56 50,58.5" fill="none" stroke="#2a2018" stroke-width="1.8"/>
+    <path d="${mouth}" fill="none" stroke="#2a2018" stroke-width="1.8"/>
+    ${marks}${hat}
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="none" stroke="#2a2018" stroke-width="2.5"/>
+  </svg>`;
+      }
+      function quillSVG() {
+        return `<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="#6e6a58"/>
+    <rect x="22" y="88" width="56" height="22" rx="3" fill="#e6ddc8" stroke="#2a2018" stroke-width="2"/>
+    <path d="M28,94 h30 M28,100 h40 M28,106 h22" stroke="#8e2f21" stroke-width="1.4"/>
+    <path d="M62,86 Q58,54 74,34 Q80,26 78,38 Q76,54 68,88 Z" fill="#efe7d0" stroke="#2a2018" stroke-width="2"/>
+    <path d="M70,72 Q66,56 72,42 M74,58 Q72,48 76,38" stroke="#2a2018" stroke-width="1.2" fill="none"/>
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="none" stroke="#2a2018" stroke-width="2.5"/>
+  </svg>`;
+      }
+      function kingSVG(year) {
+        const gray = year >= 6, salt = year >= 3;
+        const hr = gray ? '#b9b2a4' : salt ? '#6e5f4a' : '#3a2c1c';
+        const wr1 = year >= 2 ? `<path d="M40,48 Q50,46 60,48" stroke="rgba(42,32,24,.45)" stroke-width="1.2" fill="none"/>` : '';
+        const wr2 = year >= 5 ? `<path d="M38,60 Q41,64 39,68" stroke="rgba(42,32,24,.4)" stroke-width="1.1" fill="none"/><path d="M62,60 Q59,64 61,68" stroke="rgba(42,32,24,.4)" stroke-width="1.1" fill="none"/>` : '';
+        const streak = salt ? `<path d="M44,68 Q46,76 48,80 M52,80 Q54,74 56,68" stroke="${gray ? '#8f887a' : '#8f8578'}" stroke-width="1.4" fill="none"/>` : '';
+        return `<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="#5d3340"/>
+    <path d="M20,116 L26,86 Q50,74 74,86 L80,116 Z" fill="#5d3340" stroke="#2a2018" stroke-width="2"/>
+    <path d="M24,100 Q50,90 76,100 L76,108 Q50,98 24,108 Z" fill="#e6ddc8" stroke="#2a2018" stroke-width="1.5"/>
+    <ellipse cx="50" cy="56" rx="17.5" ry="21" fill="#dcb086" stroke="#2a2018" stroke-width="2"/>
+    <path d="M38,62 Q39,80 50,82 Q61,80 62,62 Q56,70 50,70 Q44,70 38,62 Z" fill="${hr}" stroke="#2a2018" stroke-width="1.5"/>
+    ${streak}
+    <path d="M39.5,49 L47,49.8" stroke="#2a2018" stroke-width="2"/><path d="M60.5,49 L53,49.8" stroke="#2a2018" stroke-width="2"/>
+    <circle cx="43.5" cy="53.5" r="1.7" fill="#2a2018"/><circle cx="56.5" cy="53.5" r="1.7" fill="#2a2018"/>
+    <path d="M50,54 Q51.5,60 50,62.5" fill="none" stroke="#2a2018" stroke-width="1.8"/>
+    <path d="M43,66.5 H57" stroke="#2a2018" stroke-width="1.8"/>
+    ${wr1}${wr2}
+    <path d="M32,34 L36,18 L43,28 L50,14 L57,28 L64,18 L68,34 Z" fill="#a4762c" stroke="#2a2018" stroke-width="2"/>
+    <rect x="31" y="32" width="38" height="7" fill="#8a5f22" stroke="#2a2018" stroke-width="1.6"/>
+    <circle cx="40" cy="35.5" r="1.6" fill="#8e2f21"/><circle cx="50" cy="35.5" r="1.6" fill="#8e2f21"/><circle cx="60" cy="35.5" r="1.6" fill="#8e2f21"/>
+    <path d="M10,116 V50 Q10,12 50,12 Q90,12 90,50 V116 Z" fill="none" stroke="#2a2018" stroke-width="2.5"/>
+  </svg>`;
+      }
+      const SIGILS = {
+        gold: `<svg class="sigil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M12 6.5v11M8.6 9.6h6.8M8.6 14.4h6.8" stroke-width="1.4"/></svg>`,
+        folk: `<svg class="sigil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21V9"/><path d="M12 9c-4 0-6-2.5-6-6 3.5 0 6 2 6 6Z"/><path d="M12 9c4 0 6-2.5 6-6-3.5 0-6 2-6 6Z"/><path d="M8 21h8"/></svg>`,
+        faith: `<svg class="sigil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v18M7 8h10"/><path d="M5 21h14"/><path d="M12 6 5 10v11M12 6l7 4v11"/></svg>`,
+        army: `<svg class="sigil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 3h6v3l-8.5 8.5"/><path d="M5 21 3 19l9-9 2 2-9 9Z"/><path d="M13 3v3"/></svg>`
+      };
+
+      /* ============ §7 THE REALM MAP ============ */
+      function regV(name) {
+        if (!S || S.map[ name ]) return;
+        let best = null;
+        for (let t = 0; t < 14; t++)
+        {
+          const x = 46 + rnd() * 368, y = 38 + rnd() * 210;
+          let ok = true;
+          if (Math.hypot(x - 225, y - 160) < 58) ok = false;
+          for (const n in S.map) { const v = S.map[ n ]; if (Math.hypot(x - v.x, y - v.y) < 58) { ok = false; break; } }
+          best = { x: Math.round(x), y: Math.round(y), icons: [] };
+          if (ok) break;
+        }
+        S.map[ name ] = best;
+      }
+      const MAPIC = {
+        tower: `<path d="M-4,7 V-2 H-6 V-6 H-4 V-4 H-1 V-6 H1 V-4 H4 V-6 H6 V-2 H4 V7 Z" fill="#ddd6c2" stroke="#2a2018" stroke-width="1.3"/>`,
+        bridge: `<path d="M-8,3 Q0,-7 8,3 M-8,3 H8 M-4,2 V-2 M0,2 V-4 M4,2 V-2" fill="none" stroke="#2a2018" stroke-width="1.3"/>`,
+        cross: `<path d="M0,-6 V6 M-4,-3 H4" fill="none" stroke="#2a2018" stroke-width="1.7"/>`,
+        pyre: `<path d="M0,7 Q-5,1 -2,-2 Q0,-4 0,-1 Q2,-5 3,-1 Q6,2 0,7 Z" fill="#8e2f21" stroke="#2a2018" stroke-width="1"/>`,
+        bell: `<path d="M-3,4 Q-4,-3 0,-4 Q4,-3 3,4 Z M-5,4 H5 M0,-6 V-4" fill="#c9b27a" stroke="#2a2018" stroke-width="1.2"/>`,
+        sack: `<path d="M-4,6 Q-6,-1 0,-2 Q6,-1 4,6 Z M-1,-2 L0,-6 L1,-2" fill="#c9b27a" stroke="#2a2018" stroke-width="1.2"/>`,
+        paw: `<circle cx="-2.6" cy="-2.6" r="1.3" fill="#2a2018"/><circle cx="0" cy="-3.8" r="1.3" fill="#2a2018"/><circle cx="2.6" cy="-2.6" r="1.3" fill="#2a2018"/><ellipse cx="0" cy="1" rx="3" ry="2.4" fill="#2a2018"/>`,
+        pick: `<path d="M-1,7 L1,-2 M1,-2 Q5,-6 8,-4 M1,-2 Q-3,-6 -6,-5" fill="none" stroke="#2a2018" stroke-width="1.3"/>`,
+        ship: `<path d="M-7,2 Q0,7 7,2 L5,-1 H-5 Z M0,-1 V-8 Q4,-6 5,-2 H0" fill="none" stroke="#2a2018" stroke-width="1.3"/>`,
+        stag: `<path d="M0,7 V0 M0,0 Q-3,-2 -4,-6 M-2,-1 L-4,-4 M0,0 Q3,-2 4,-6 M2,-1 L4,-4" fill="none" stroke="#2a2018" stroke-width="1.1"/>`,
+        star: `<path d="M0,-7 L1.8,-1.8 L7,0 L1.8,1.8 L0,7 L-1.8,1.8 L-7,0 L-1.8,-1.8 Z" fill="#a4762c" stroke="#2a2018" stroke-width="1"/>`,
+        crown: `<path d="M-8,4 V-4 L-4,-1 L0,-7 L4,-1 L8,-4 V4 Z" fill="#a4762c" stroke="#2a2018" stroke-width="1.3"/>`
+      };
+      function iconG(i, x, y, title) {
+        return `<g transform="translate(${x},${y})">${title ? `<title>${esc(title)}</title>` : ''}${MAPIC[ i ] || MAPIC.cross}</g>`;
+      }
+      function renderMap() {
+        const w = 460, h = 330, cap = { x: 225, y: 160 };
+        const P = [];
+        P.push(`<rect x="1" y="1" width="${w - 2}" height="${h - 2}" fill="none" stroke="rgba(42,32,24,.5)"/>`);
+        P.push(`<rect x="5" y="5" width="${w - 10}" height="${h - 10}" fill="none" stroke="rgba(42,32,24,.25)"/>`);
+        P.push(`<text x="${w / 2}" y="28" text-anchor="middle" class="maptitle">${esc(S.kingdom)}</text>`);
+        P.push(`<path d="M0,${h - 46} Q60,${h - 53} 120,${h - 46} T240,${h - 46} T360,${h - 46} T${w},${h - 46} L${w},${h} L0,${h} Z" fill="rgba(90,120,130,.16)"/>`);
+        P.push(`<path d="M0,${h - 46} Q60,${h - 53} 120,${h - 46} T240,${h - 46} T360,${h - 46} T${w},${h - 46}" fill="none" stroke="rgba(42,32,24,.5)" stroke-width="1.2"/>`);
+        P.push(`<text x="${w - 14}" y="${h - 12}" text-anchor="end" class="mapsea">the grey sea</text>`);
+        P.push(`<path d="M318,34 q42,-16 78,4 q28,17 9,46 q-40,21 -74,4 q-32,-17 -13,-54 Z" fill="rgba(90,110,70,.2)" stroke="rgba(42,32,24,.4)" stroke-dasharray="3 3"/>`);
+        P.push(`<text x="366" y="66" text-anchor="middle" class="maplb">the high wood</text>`);
+        P.push(`<path d="M40,0 C90,80 58,138 130,190 C190,231 200,248 212,${h - 46}" fill="none" stroke="rgba(70,100,110,.55)" stroke-width="4" opacity=".55"/>`);
+        for (const name in S.map)
+        {
+          const v = S.map[ name ];
+          const dx = v.x - cap.x, dy = v.y - cap.y, len = Math.max(1, Math.hypot(dx, dy));
+          const off = (hsh(name) % 17) - 8;
+          const cx = (cap.x + v.x) / 2 + (-dy / len) * off, cy = (cap.y + v.y) / 2 + (dx / len) * off;
+          P.push(`<path d="M${cap.x},${cap.y} Q${cx.toFixed(1)},${cy.toFixed(1)} ${v.x},${v.y}" fill="none" stroke="rgba(42,32,24,.32)" stroke-width="1.1" stroke-dasharray="4 4"/>`);
+          v.icons.forEach(ic => P.push(iconG(ic.i, v.x + ic.dx, v.y + ic.dy, name)));
+          P.push(`<circle cx="${v.x}" cy="${v.y}" r="2.6" fill="#2a2018"/>`);
+          P.push(`<text x="${v.x}" y="${v.y + 17}" text-anchor="middle" class="maplb">${esc(name)}</text>`);
+        }
+        S.capIcons.forEach(ic => P.push(iconG(ic.i, cap.x + ic.dx, cap.y + ic.dy, 'the keep')));
+        P.push(iconG('crown', cap.x, cap.y, 'the keep'));
+        P.push(`<text x="${cap.x}" y="${cap.y - 14}" text-anchor="middle" class="mapcap">THE KEEP</text>`);
+        S.mapSea.forEach(sh => P.push(iconG(sh.i, sh.x, sh.y, 'sails in the river mouth')));
+        P.push(`<g transform="translate(34,42)"><circle r="11" fill="none" stroke="rgba(42,32,24,.5)"/><path d="M0,8 V-8 M-4,-4 L0,-8 L4,-4" fill="none" stroke="rgba(42,32,24,.6)" stroke-width="1.2"/><text y="-14" text-anchor="middle" class="mapcap" style="letter-spacing:0">N</text></g>`);
+        $('mapBox').innerHTML = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of ${esc(S.kingdom)}">${P.join('')}</svg>`;
+        let wl = '';
+        if (S.wonder) wl = `Now building: ${esc(S.wonder.n)} — year ${S.wonder.paid} of 3.`;
+        if (S.wondersDone.length) wl += (wl ? '<br>' : '') + 'Completed: ' + S.wondersDone.map(id => esc(WONDERMAP[ id ] ? WONDERMAP[ id ].n : id)).join(', ') + '.';
+        $('wonderLine').innerHTML = wl || 'No wonders yet; the scribe sketches only what petitioners describe.';
+      }
+
+      /* ============ §8 AUDIO ============ */
+      const AU = { on: true, ctx: null, master: null, amb: [], luteT: null };
+      function actx() {
+        try
+        {
+          if (!AU.ctx)
+          {
+            const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+            AU.ctx = new C(); AU.master = AU.ctx.createGain(); AU.master.gain.value = .5; AU.master.connect(AU.ctx.destination);
+          }
+          if (AU.ctx.state === 'suspended') AU.ctx.resume();
+          return AU.ctx;
+        } catch (e) { return null; }
+      }
+      function noiseBuf(ctx, secs) {
+        const b = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * secs)), ctx.sampleRate), d = b.getChannelData(0);
+        let last = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; d[ i ] = (last + 0.02 * w) / 1.02; last = d[ i ]; }
+        return b;
+      }
+      function stopAmbNodes() { AU.amb.forEach(n => { try { n.stop(); } catch (e) { } }); AU.amb = []; if (AU.luteT) { clearInterval(AU.luteT); AU.luteT = null; } }
+      function startAmb() {
+        const ctx = actx(); if (!ctx || !AU.on) return;
+        stopAmbNodes();
+        try
+        {
+          const src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx, 3); src.loop = true;
+          const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
+          const g = ctx.createGain(); g.gain.value = .05;
+          src.connect(lp); lp.connect(g); g.connect(AU.master); src.start();
+          const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 65;
+          const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = 65.7;
+          const og = ctx.createGain(); og.gain.value = .016;
+          o.connect(og); o2.connect(og); og.connect(AU.master); o.start(); o2.start();
+          AU.amb = [ src, o, o2 ];
+          AU.luteT = setInterval(() => {
+            if (!AU.on || document.hidden || Math.random() < 0.45) return;
+            const scale = [ 196, 220, 246.9, 293.7, 329.6, 392 ];
+            const f = scale[ Math.floor(Math.random() * scale.length) ] * (Math.random() < 0.3 ? 2 : 1);
+            const t = ctx.currentTime;
+            const p = ctx.createOscillator(); p.type = 'triangle'; p.frequency.value = f;
+            const pg = ctx.createGain(); pg.gain.setValueAtTime(0, t); pg.gain.linearRampToValueAtTime(.05, t + .012);
+            pg.gain.exponentialRampToValueAtTime(.0001, t + 1.1);
+            p.connect(pg); pg.connect(AU.master); p.start(t); p.stop(t + 1.2);
+          }, 2600);
+        } catch (e) {/* audio is decorative; never fatal */ }
+      }
+      const sfx = {
+        flip() {
+          const ctx = actx(); if (!ctx || !AU.on) return; const t = ctx.currentTime;
+          const src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx, .12);
+          const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1200; bp.Q.value = .8;
+          const g = ctx.createGain(); g.gain.setValueAtTime(.14, t); g.gain.exponentialRampToValueAtTime(.001, t + .12);
+          src.connect(bp); bp.connect(g); g.connect(AU.master); src.start(t);
+        },
+        stamp() {
+          const ctx = actx(); if (!ctx || !AU.on) return; const t = ctx.currentTime;
+          const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(55, t + .12);
+          const g = ctx.createGain(); g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.001, t + .16);
+          o.connect(g); g.connect(AU.master); o.start(t); o.stop(t + .2);
+        },
+        scribble() {
+          const ctx = actx(); if (!ctx || !AU.on) return; const t = ctx.currentTime;
+          for (let i = 0; i < 3; i++)
+          {
+            const src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx, .06);
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2800 + i * 300; bp.Q.value = 2;
+            const g = ctx.createGain(); g.gain.setValueAtTime(.09, t + i * .07); g.gain.exponentialRampToValueAtTime(.001, t + i * .07 + .06);
+            src.connect(bp); bp.connect(g); g.connect(AU.master); src.start(t + i * .07);
+          }
+        },
+        chime() {
+          const ctx = actx(); if (!ctx || !AU.on) return; const t = ctx.currentTime;
+          [ 660, 990 ].forEach((f, i) => {
+            const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+            const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.12, t + .02 + i * .06);
+            g.gain.exponentialRampToValueAtTime(.001, t + 1.2); o.connect(g); g.connect(AU.master); o.start(t); o.stop(t + 1.3);
+          });
+        },
+        bell() {
+          const ctx = actx(); if (!ctx || !AU.on) return; const t = ctx.currentTime;
+          [ 196, 294.7, 392 ].forEach((f, i) => {
+            const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * (1 + (Math.random() - .5) * .004);
+            const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22 / (i + 1), t + .03);
+            g.gain.exponentialRampToValueAtTime(.001, t + 3); o.connect(g); g.connect(AU.master); o.start(t); o.stop(t + 3.2);
+          });
+        }
+      };
+
+      /* ============ §9 CORE LOOP (guarded) ============ */
+      function delta(k, v) {
+        if (!S || !(k in S.stats)) return;
+        const o = S.stats[ k ]; S.stats[ k ] = clamp(o + v, 0, 100);
+        const d = S.stats[ k ] - o;
+        if (d) { pip(k, d); if (v < 0 && (k === 'folk' || k === 'army')) S.anger += Math.min(2, Math.ceil(-v / 6)); }
+        renderStats();
+      }
+      function pip(k, d) {
+        const el = [ ...$('statRow').children ].find(c => c.dataset.k === k); if (!el) return;
+        const p = document.createElement('span'); p.className = 'pip ' + (d > 0 ? 'good' : 'bad');
+        p.textContent = (d > 0 ? '+' : '') + d; el.appendChild(p); setTimeout(() => p.remove(), 960);
+      }
+      function applyFx(r, a, ev) {
+        if (!r) return r;
+        try
+        {
+          if (r.d) for (const k in r.d) delta(k, r.d[ k ]);
+          if (r.st && a && a.id >= 0) a.standing = clamp(a.standing + r.st, -3, 3);
+          if (r.st < 0) S.anger += 1;
+          if (r.anger) S.anger = Math.max(0, S.anger + r.anger);
+          if (r.th) r.th.forEach(t => { if (t && TPLMAP[ t.tpl ]) S.threads.push({ tpl: t.tpl, delay: t.delay || ri(4, 8), actor: t.actor ? a : undefined, w: t.w }); });
+          dedupeThreads(S);
+          if (r.chron) addChron(r.chron);
+          if (r.flag) Object.assign(S.flags, r.flag);
+          if (r.spouse) S.spouse = r.spouse;
+          if (r.heirName) S.heir = { name: String(r.heirName).slice(0, 24), born: S.year };
+          if (r.karma && S.karma[ r.karma ] != null) S.karma[ r.karma ]++;
+          if (r.mk)
+          {
+            const m = r.mk;
+            if (m.at === 'sea') { S.mapSea.push({ x: 50 + rnd() * 350, y: 293 + rnd() * 15, i: m.i }); }
+            else if (m.at === 'cap') { S.capIcons.push({ i: m.i, dx: m.dx != null ? m.dx : 38 + (S.capIcons.length % 3) * 15, dy: m.dy != null ? m.dy : -28 }); }
+            else if (S.lastV && S.map[ S.lastV ]) { const arr = S.map[ S.lastV ].icons; arr.push({ i: m.i, dx: 10 + (arr.length % 4) * 13, dy: -10 }); }
+          }
+          if (r.end) S.pendingEnd = r.end;
+          checkAch();
+        } catch (e) { reportError(e); }
+        return r;
+      }
+      function noteActor(a, tpl, r) {
+        try
+        {
+          if (!a || a.id < 0) return;
+          a.hist = a.hist || [];
+          a.hist.push({ y: S.year, t: (r && r.chron) || (tpl.cat === 'thread' ? 'returned before the throne' : 'petitioned the crown') });
+          if (a.hist.length > 4) a.hist.shift();
+        } catch (e) { }
+      }
+      function addChron(t) {
+        S.chron.push({ y: S.year, t: String(t).slice(0, 300) });
+        if (rnd() < 0.14)
+        {
+          const aside = pick([ 'The scribe spilled ink at this entry.', 'The scribe underlined this one twice.', 'Here the vellum is worn, as if read often.', 'A candle-drip scars this line.' ]);
+          S.chron.push({ y: S.year, t: aside, aside: 1 });
+        }
+        renderChron();
+      }
+      function checkAch() {
+        try
+        {
+          ACHS.forEach(a => { if (L.ach.indexOf(a.id) < 0 && a.c(S)) { L.ach.push(a.id); saveLegacy(); toast(a.n); sfx.chime(); } });
+        } catch (e) { }
+      }
+      function toast(msg) {
+        const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status');
+        const seal = document.createElement('span'); seal.className = 'tseal';
+        const box = document.createElement('span');
+        const b = document.createElement('b'); b.textContent = 'Seal granted';
+        const s2 = document.createElement('span'); s2.textContent = msg;
+        box.appendChild(b); box.appendChild(s2);
+        t.appendChild(seal); t.appendChild(box);
+        document.body.appendChild(t);
+        setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 450); }, 3800);
+      }
+      function pickEvent() {
+        const dueI = S.threads.findIndex(t => t.delay <= 0 && TPLMAP[ t.tpl ]);
+        if (dueI >= 0) { const th = S.threads.splice(dueI, 1)[ 0 ]; return buildEv(TPLMAP[ th.tpl ], th); }
+        const cr = TPL.filter(t => t.cat === 'crisis' && (!t.cond || t.cond(S)));
+        if (cr.length && rnd() < 0.85) return buildEv(pick(cr), null);
+        const sp = special(); if (sp) return buildEv(sp, null);
+        let pool = TPL.filter(t => t.cat === 'base' && S.recent.indexOf(t.id) < 0 && (!t.cond || t.cond(S)));
+        if (!pool.length) pool = TPL.filter(t => t.cat === 'base' && (!t.cond || t.cond(S)));
+        if (!pool.length) pool = TPL.filter(t => t.cat === 'base');
+        return buildEv(pick(pool.length ? pool : TPL), null);
+      }
+      function special() {
+        const seas = Math.floor(S.turnInYear / 3);
+        if (!S.spouse && S.turn >= 6 && S.turn <= 40 && !S.flags.wedAsked && rnd() < 0.5) { S.flags.wedAsked = 1; return TPLMAP.marriage; }
+        if (seas === 2 && !S.flags[ 'h' + S.year ] && rnd() < 0.3) { S.flags[ 'h' + S.year ] = 1; return TPLMAP.harvest; }
+        if (seas === 3 && !S.flags[ 'y' + S.year ] && rnd() < 0.3) { S.flags[ 'y' + S.year ] = 1; return TPLMAP.yule; }
+        return null;
+      }
+      function buildEv(tpl, th) {
+        const ev = { tpl };
+        if (tpl.id === 'marriage')
+        {
+          ev.actor = scribbleActor();
+          const cs = [ ...CONSORTS ]; ev.cands = [];
+          for (let i = 0; i < 3; i++)ev.cands.push({ ...cs.splice(Math.floor(rnd() * cs.length), 1)[ 0 ], name: pick(NAMES.noble) });
+          ev.ch = ev.cands.map(c => ({
+            label: `Wed ${c.name} — ${c.tag} (${c.per})`,
+            out: () => `The banns are read, the bells are rung, and the whole court calculates, instantly, what two points of ${c.key} each year will mean. The king marries in bright weather.`,
+            fx: () => ({ spouse: { name: c.name, key: c.key, tag: c.tag }, d: { folk: 3 }, karma: 'mercy', chron: `The king wed ${c.name}, ${c.tag}.` })
+          }));
+          ev.ch.push({
+            label: 'Wed no one — the crown stands alone',
+            out: 'The letters are returned with courteous regrets. The council disperses to explain three great houses, at once, why the answer was no. The king dines alone, which is either solitude or strategy.',
+            fx: () => ({ d: { folk: -2 }, chron: 'The crown declined all three marriages.' })
+          });
+        }
+        else if (tpl.id === 'heir_born')
+        {
+          ev.actor = scribbleActor();
+          ev.n1 = pick(NAMES.peasant); ev.n2 = pick(NAMES.peasant);
+          ev.ch = [
+            {
+              label: `A name of the king’s line: ${ev.n1}`,
+              out: (s, a, e) => `The heralds cry it from the walls: the heir of the crown is named ${e.n1}. The guns answer from the towers, badly, in the wrong order, which somehow makes it better.`,
+              fx: (s, a, e) => ({ d: { folk: 6 }, heirName: e.n1, chron: `An heir was born to the crown, and named ${e.n1}.` })
+            },
+            {
+              label: `A name of the queen’s line: ${ev.n2}`,
+              out: (s, a, e) => `The queen's mother weeps openly in the audience, which the court pretends is about the name and not the eight years of negotiations. The heir of the crown is named ${e.n2}.`,
+              fx: (s, a, e) => ({ d: { folk: 6 }, heirName: e.n2, chron: `An heir was born to the crown, and named ${e.n2}.` })
+            } ];
+        }
+        else if (tpl.id === 'wonder')
+        {
+          const av = WONDERS.filter(w => !S.flags[ 'w_' + w.id ]); ev.w = av.length ? pick(av) : WONDERS[ 0 ];
+          ev.actor = getActor(ev.w.cls);
+          ev.ch = [
+            {
+              label: `Begin ${ev.w.n} — ${ev.w.per} gold each year`,
+              out: `The first stone is laid with ceremony, a sermon, and one anachronistic joke from the fool. The treasury opens a separate, increasingly melancholy ledger for the works.`,
+              fx: () => ({ d: { gold: -ev.w.per }, karma: 'gold', wonderStart: 1, chron: `The first stone of ${ev.w.n} was laid.` })
+            },
+            {
+              label: 'The realm cannot afford wonders',
+              out: `The diagrams are rolled up with more force than diagrams strictly require. The realm goes on affording exactly what it has always afforded, which is less every year, the surveyor is heard muttering on the stairs.`,
+              fx: () => ({ d: { folk: -2 }, karma: 'iron' })
+            } ];
+        }
+        else if (tpl.id === 'con_w2')
+        {
+          ev.actor = tpl.who ? getActor(pick(tpl.who)) : scribbleActor();
+          ev.names = conNames();
+          ev.ch = [
+            {
+              label: 'Send trusted watchers',
+              out: () => `Three watchers are sent and two return. The names they bring back are worse than no names: ${ev.names.join('; ')} — people the crown trusts daily. The plot, it appears, has a face. Several.`,
+              fx: () => ({ d: { gold: -6 }, flag: { known: 1 }, chron: 'The watchers returned with names, and the names were trusted ones.' })
+            },
+            {
+              label: 'Deny it publicly',
+              out: `The crown proclaims, from the steps, its perfect confidence in the loyalty of all subjects. The proclamation is read aloud in the taverns, where it is received with a particular quality of silence that answers the question.`,
+              fx: () => ({ anger: 2 })
+            } ];
+        }
+        else if (tpl.id === 'wdone')
+        {
+          ev.w = WONDERMAP[ th && th.w ] || WONDERS[ 0 ]; ev.actor = scribbleActor();
+        }
+        else
+        {
+          ev.actor = th && th.actor ? th.actor : (tpl.who ? getActor(pick(tpl.who)) : scribbleActor());
+          if (typeof tpl.choices === 'function') ev.ch = tpl.choices(S, ev.actor, ev);
+          else if (tpl.choices) ev.ch = tpl.choices;
+        }
+        if (tpl.cat === 'base' && [ 'marriage', 'wonder' ].indexOf(tpl.id) < 0) { S.recent.push(tpl.id); S.recent = S.recent.slice(-7); }
+        return ev;
+      }
+      function fallbackEvent() {
+        return {
+          tpl: {
+            id: 'quiet', cat: 'base',
+            text: () => 'No petitioner this hour. The fire ticks in the grate; the scribe rules a page and waits.'
+          },
+          out: 'The quiet passes, unrecorded but for this line.',
+          actor: scribbleActor()
+        };
+      }
+      function renderEvent(ev) {
+        EV = ev; PHASE = ev.ch && ev.ch.length ? 'choose' : 'outcome';
+        $('kicker').textContent = pick(KICKERS);
+        const a = ev.actor || scribbleActor();
+        $('pframe').innerHTML = a.id >= 0 ? portraitSVG(a) : quillSVG();
+        $('pname').textContent = a.id >= 0 ? a.name : 'The Scribe’s Pen';
+        $('ptitle').textContent = a.id >= 0 ? (a.title || 'of the realm') : 'what happened while the court looked away';
+        let txt = '';
+        try { txt = typeof ev.tpl.text === 'function' ? ev.tpl.text(S, a, ev) : (ev.tpl.text || ''); }
+        catch (e) { reportError(e); txt = 'The petitioner fainted before speaking. The court waits.'; }
+        $('speech').textContent = txt;
+        const cc = $('choices'); cc.innerHTML = '';
+        if (ev.ch)
+        {
+          ev.ch.forEach((c, i) => {
+            const b = document.createElement('button'); b.className = 'choice'; b.type = 'button';
+            const seal = document.createElement('span'); seal.className = 'seal';
+            const lab = document.createElement('span'); lab.className = 'clabel'; lab.textContent = c.label;
+            b.appendChild(seal); b.appendChild(lab);
+            b.addEventListener('click', () => choose(i));
+            cc.appendChild(b);
+          });
+          cc.hidden = false;
+        } else cc.hidden = true;
+        $('outcome').hidden = true;
+        if (PHASE === 'outcome') resolvePure();
+        const card = $('card');
+        card.style.setProperty('--tilt', (rnd() * 0.8 - 0.4).toFixed(2) + 'deg');
+        card.style.transform = '';
+        card.classList.remove('deal'); void card.offsetWidth; card.classList.add('deal');
+        card.classList.toggle('canGrab', ev.ch && ev.ch.length === 2);
+        sfx.flip();
+      }
+      function resolvePure() {
+        const ev = EV;
+        let r = null;
+        try { r = ev.tpl.fx ? ev.tpl.fx(S, ev.actor, ev) : null; } catch (e) { reportError(e); }
+        try { applyFx(r, ev.actor, ev); } catch (e) { reportError(e); }
+        try { noteActor(ev.actor, ev.tpl, r); } catch (e) { }
+        let t = '';
+        try { t = typeof ev.tpl.out === 'function' ? ev.tpl.out(S, ev.actor, ev) : (ev.tpl.out || ''); }
+        catch (e) { reportError(e); t = 'The scribe records only that the ink ran dry.'; }
+        $('outText').textContent = t;
+        $('outcome').hidden = false;
+        saveGame();
+      }
+      function choose(i) {
+        if (busy || !S || !S.alive || PHASE !== 'choose' || !EV || !EV.ch || !EV.ch[ i ]) return;
+        busy = true;
+        try
+        {
+          PHASE = 'outcome'; sfx.stamp();
+          const c = EV.ch[ i ]; S.judged++;
+          let r = null;
+          try { r = c.fx ? c.fx(S, EV.actor, EV) : null; } catch (e) { reportError(e); r = null; }
+          try { r = applyFx(r, EV.actor, EV); } catch (e) { reportError(e); }
+          try { noteActor(EV.actor, EV.tpl, r); } catch (e) { }
+          if (r && r.wonderStart && EV.w) { S.wonder = { id: EV.w.id, n: EV.w.n, per: EV.w.per, paid: 0 }; }
+          let t = '';
+          try { t = typeof c.out === 'function' ? c.out(S, EV.actor, EV) : (c.out || ''); }
+          catch (e) { reportError(e); t = 'The scribe records only that the ink ran dry.'; }
+          $('outText').textContent = t;
+          $('choices').hidden = true;
+          $('outcome').hidden = false;
+          saveGame();
+        } finally { busy = false; }
+      }
+      function onContinue() {
+        if (busy || PHASE !== 'outcome') return;
+        busy = true;
+        try
+        {
+          sfx.scribble();
+          if (S.pendingEnd) { const e = S.pendingEnd; S.pendingEnd = null; endReign(e); return; }
+          S.turn++; S.turnInYear++;
+          S.threads.forEach(t => { if (t && typeof t.delay === 'number') t.delay--; });
+          if (S.turnInYear >= 12) { yearEnd(); }
+          else { saveGame(); renderHeader(); showNext(); }
+        } catch (e) { reportError(e); try { renderHeader(); showNext(); } catch (e2) { } }
+        finally { busy = false; }
+      }
+      function showNext() {
+        $('yearEnd').hidden = true;
+        try { renderEvent(pickEvent()); }
+        catch (e) { reportError(e); try { renderEvent(fallbackEvent()); } catch (e2) { reportError(e2); } }
+      }
+      /* ---------- year end ---------- */
+      function yearEnd() {
+        const items = [];
+        let tax = Math.max(0, Math.round((S.stats.folk - 35) / 9) + 4);
+        items.push([ 'Taxes of a quiet realm', '+' + tax ]);
+        delta('gold', tax);
+        if (S.flags.road) { delta('gold', 2); items.push([ 'Tolls of the Royal Road', '+2' ]); }
+        if (S.flags.pilgrims) { delta('gold', 4); items.push([ 'Offerings of pilgrims', '+4' ]); }
+        const up = Math.max(2, Math.round((S.stats.army - 35) / 9) + 2);
+        delta('gold', -up); items.push([ 'Upkeep of the levy', '−' + up ]);
+        if (S.spouse) { delta(S.spouse.key, 2); items.push([ 'The household of Queen ' + S.spouse.name.replace(/^(Lady|Sir|Lord) /, ''), '+2 ' + S.spouse.key ]); }
+        if (S.flags.acad)
+        {
+          const lo = STATS.reduce((a, b) => S.stats[ a ] <= S.stats[ b ] ? a : b);
+          delta(lo, 2); items.push([ 'The Academy steadies the realm', '+2 ' + lo ]);
+        }
+        if (S.wonder)
+        {
+          if (S.stats.gold >= S.wonder.per) { delta('gold', -S.wonder.per); S.wonder.paid++; items.push([ 'Works of ' + S.wonder.n, '−' + S.wonder.per ]); }
+          else items.push([ 'Works of ' + S.wonder.n, 'halted — the purse is bare' ]);
+          if (S.wonder && S.wonder.paid >= 3)
+          {
+            const w = WONDERMAP[ S.wonder.id ];
+            S.wondersDone.push(w.id); S.flags[ 'w_' + w.id ] = 1; S.flags.wonderAny = 1;
+            if (w.id === 'road') S.flags.road = 1; if (w.id === 'cath') S.flags.pilgrims = 1; if (w.id === 'acad') S.flags.acad = 1;
+            S.threads.push({ tpl: 'wdone', delay: ri(1, 2), w: w.id }); S.wonder = null;
+            dedupeThreads(S);
+          }
+        }
+        let gr = 0;
+        if (S.stats.folk < 38) gr += 2; if (S.stats.army < 38) gr += 1; if (S.anger > 0) gr += 1;
+        S.anger = Math.max(0, S.anger - 1);
+        if (!S.flags.conDone)
+        {
+          S.conProg += gr;
+          if (S.conProg >= 3 && !S.flags.w1) { S.flags.w1 = 1; S.threads.push({ tpl: 'con_w1', delay: ri(1, 3) }); }
+          if (S.conProg >= 6 && !S.flags.w2) { S.flags.w2 = 1; S.threads.push({ tpl: 'con_w2', delay: ri(1, 3) }); }
+          if (S.conProg >= 10 && !S.flags.plot) { S.flags.plot = 1; S.threads.push({ tpl: 'con_plot', delay: 1 }); }
+          dedupeThreads(S);
+        }
+        if (S.spouse && !S.heir && rnd() < 0.4) { S.threads.push({ tpl: 'heir_born', delay: ri(2, 5) }); dedupeThreads(S); }
+        S.age++;
+        let end = null;
+        const worst = STATS.map(k => [ k, S.stats[ k ] ]).find(([ k, v ]) => v <= 2 || v >= 98);
+        if (worst) end = { c: worst[ 0 ] + (worst[ 1 ] <= 2 ? '_low' : '_high') };
+        else if (S.age >= 58 && rnd() < 0.04 + (S.age - 58) * 0.05) end = { c: 'age' };
+        S.year++; S.turnInYear = 0;
+        renderHeader(); renderChron(); checkAch();
+        if (end) { clearSave(); endReign(end.c); return; }
+        showYearSheet(items);
+        saveGame();
+      }
+      function showYearSheet(items) {
+        const seas = SEASONS[ 3 ];
+        $('yeTitle').textContent = 'The Year ' + rom(S.year - 1) + ' Turns';
+        $('yeLead').textContent = pick(seas.f) + ' The ledger is closed; the candles are counted; the scribe rules a fresh page.';
+        const yrEvents = S.chron.filter(c => c.y === S.year - 1 && !c.aside).length;
+        items.push([ 'Entries in the chronicle', yrEvents ]);
+        if (S.conProg >= 6 && !S.flags.conDone) items.push([ 'A new quiet on the servants’ stair', '...' ]);
+        $('yeItems').innerHTML = items.map(([ a, b ]) => `<div class="led"><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('');
+        $('yeMove').textContent = `The king is ${S.age} winters old.` + (S.heir ? ` The heir, ${S.heir.name}, grows apace.` : '') + (S.wonder ? ` The works of ${S.wonder.n} continue.` : '');
+        $('yeClose').textContent = (!S.flags.prophecy && S.prop) ? 'The wisewoman\u2019s words have not yet come to pass.' : '';
+        $('yearEnd').hidden = false;
+        $('btnYear').focus();
+      }
+      /* ---------- endings & dynasty ---------- */
+      function kingName() { return S.king.first + ' ' + S.king.num + ' of ' + S.king.house; }
+      function reignEpithet() {
+        const k = S.karma || {}; let best = null, bv = 0;
+        [ [ 'mercy', 'the Merciful' ], [ 'iron', 'the Iron-Handed' ], [ 'gold', 'the Reckoner' ], [ 'god', 'the Anointed' ] ].forEach(([ key, ep ]) => {
+          if ((k[ key ] || 0) > bv) { bv = k[ key ]; best = ep; }
+        });
+        if (bv < 4)
+        {
+          if (S.stats.folk >= 60) best = 'the Beloved';
+          else if (S.stats.gold >= 60) best = 'the Provident';
+          else if (S.stats.army >= 60) best = 'the Respected';
+          else if (S.stats.faith >= 60) best = 'the Blesséd';
+          else best = 'the Unremembered';
+        }
+        return best;
+      }
+      function endReign(cause) {
+        if (endHandled) return; endHandled = true;
+        S.alive = false; PHASE = 'idle';
+        const e = ENDINGS[ cause ] || ENDINGS.age;
+        const name = kingName(), ep = reignEpithet();
+        const entry = { name, years: S.year, t: e[ 0 ], ep };
+        S.dyn.push(entry); L.hist.push(entry); L.hist = L.hist.slice(-HIST_CAP); saveLegacy(); clearSave();
+        $('mKicker').textContent = 'HERE ENDS THE REIGN · YEAR ' + S.year;
+        $('mTitle').textContent = name + ' ' + e[ 0 ];
+        $('mCause').textContent = e[ 1 ];
+        const ms = $('mStats'); ms.innerHTML = '';
+        for (const k of STATS)
+        {
+          const d = document.createElement('div'); d.className = 'stat';
+          d.innerHTML = `${SIGILS[ k ]}<div class="bar"><i style="width:${S.stats[ k ]}%"></i></div><div class="slabel">${STATNAMES[ k ]}</div>`;
+          ms.appendChild(d);
+        }
+        const k = S.karma || {}; const kc = k.mercy + k.iron + k.gold + k.god;
+        const verdict = kc > 0 ? `Judged by the scribe: ${k.mercy} mercies · ${k.iron} strokes of iron · ${k.gold} reckonings · ${k.god} benedictions.` : 'The scribe\u2019s verdict is characteristically brief: “We shall see.”';
+        const rows = S.dyn.map(d => `${esc(d.name)}, called ${esc(d.ep)} · ${d.years} winters · ${esc(d.t)}`);
+        $('mRow').innerHTML = rows.map(r => `<span>${r}</span>`).join('')
+          + `<span style="color:var(--ink)">${esc(verdict)}</span>`
+          + `<span style="color:var(--ink)">The dynasty: ${S.dyn.reduce((a, d) => a + d.years, 0)} winters in all · ${S.wondersDone.length} wonder(s) raised</span>`;
+        const last = S.chron.slice(-3).map(c => `<div class="ce">${esc(c.t)}</div>`).join('');
+        $('mChron').innerHTML = last || '<div class="ce">Nothing, the scribe notes, worth the ink.</div>';
+        $('btnAgain').textContent = S.heir ? ('Crown ' + S.heir.name) : 'Begin a New Dynasty';
+        $('memorial').hidden = false;
+        $('btnAgain').focus();
+        sfx.bell();
+      }
+      function succession() {
+        const hn = S.heir.name;
+        S.king = { first: hn, num: pick(KNUM), house: S.king.house, kingdom: S.king.kingdom };
+        S.age = ri(15, 21); S.year = 1; S.turn = 0; S.turnInYear = 0; S.judged = 0;
+        S.heir = null; S.spouse = null; S.pendingEnd = null; S.recent = [];
+        STATS.forEach(k => { S.stats[ k ] = clamp(Math.round(S.stats[ k ] + (50 - S.stats[ k ]) * 0.25), 20, 80); });
+        S.conProg = Math.floor(S.conProg / 2);
+        [ 'plot', 'w1', 'w2', 'conDone', 'purged', 'wedAsked' ].forEach(f => { delete S.flags[ f ]; });
+        S.karma = { mercy: 0, iron: 0, gold: 0, god: 0 }; S.capIcons = []; S.mapSea = []; endHandled = false;
+        S.prop = genProp();
+        S.threads = [ { tpl: S.prop.full, delay: ri(10, 20) } ];
+        S.alive = true;
+        addChron(hn + ' was crowned upon the old king\u2019s stone, and the bells counted a new reign.');
+        $('mainArea').setAttribute('data-letter', S.kingdom[ 0 ]);
+        renderHeader(); renderChron(); saveGame(); checkAch(); showNext();
+      }
+
+      /* ============ ERROR RECOVERY ============ */
+      let errShown = false;
+      function reportError(err) {
+        const msg = err && err.message ? err.message : String(err);
+        try { console.error('[crown]', err); } catch (e) { }
+        if (errShown) return; errShown = true;
+        const el = $('errText');
+        if (el) el.textContent = 'Something went wrong behind the arras (' + msg + '). Your reign is autosaved and safe — take up the pen and carry on, or reload the hall.';
+        const v = $('errVeil'); if (v) v.hidden = false;
+      }
+      $('errDismiss').addEventListener('click', () => { errShown = false; $('errVeil').hidden = true; if (PHASE === 'outcome' || PHASE === 'choose') {/* already recoverable */ } });
+      $('errReload').addEventListener('click', () => { try { saveGame(); } catch (e) { } location.reload(); });
+      window.addEventListener('error', e => reportError(e.error || e.message));
+      window.addEventListener('unhandledrejection', e => reportError(e.reason));
+
+      /* ============ §10 RENDER ============ */
+      function scribeQuip() {
+        if (S.wonder) return 'The scaffolds of ' + S.wonder.n + ' rise by the day; the treasury counts backwards.';
+        const m = Math.min(S.stats.gold, S.stats.folk, S.stats.faith, S.stats.army);
+        if (m < 20) return 'The scribe has begun keeping certain pages close to the candle, and certain names close to the vest.';
+        if (S.anger >= 4) return 'A new quiet on the servants\u2019 stair. The scribe pretends not to hear it.';
+        if (S.flags.purged) return 'The cells are full; the chronicle is short; the scribe writes small.';
+        if (m >= 65) return 'The scribe, pressed, admits the realm is in good heart — and quickly adds, “so far.”';
+        const q = [ 'The hall is quiet; the candles are expensive.', 'The dogs are fat and the chroniclers bored, which the scribe calls a blessing.', 'Everything, for the moment, is signed, sealed, and filed under hope.', 'Petitioners are already queued under the cloak, breathing on their hands.' ];
+        return pick(q);
+      }
+      function renderHeader() {
+        if (!S) return;
+        $('kName').textContent = S.king.first + ' ' + S.king.num;
+        $('kYear').textContent = S.king.house + ' · Year ' + S.year + ' of the reign';
+        const seas = SEASONS[ Math.min(3, Math.floor(S.turnInYear / 3)) ];
+        $('kSeason').textContent = seas.n + ' — ' + seas.f[ (S.year + Math.floor(S.turnInYear / 3)) % seas.f.length ];
+        $('kFam').textContent = (S.spouse ? ('Queen ' + S.spouse.name.replace(/^(Lady|Sir|Lord) /, '') + ' · ') : '') + (S.heir ? ('Heir: ' + S.heir.name + ' · ') : '') + (S.wonder ? ('building ' + S.wonder.n) : '');
+        $('kingP').innerHTML = kingSVG(Math.min(S.year, 6));
+        document.title = S.king.first + ' ' + S.king.num + ' — The Weight of the Crown';
+        renderStats();
+      }
+      function renderStats() {
+        if (!S) return;
+        for (const k of STATS)
+        {
+          const el = [ ...$('statRow').children ].find(c => c.dataset.k === k); if (!el) continue;
+          el.querySelector('.bar i').style.width = S.stats[ k ] + '%';
+          el.classList.toggle('low', S.stats[ k ] < 25);
+          el.classList.toggle('high', S.stats[ k ] > 85);
+          el.setAttribute('role', 'img');
+          el.setAttribute('aria-label', STATNAMES[ k ] + ': ' + S.stats[ k ] + ' of 100');
+        }
+        $('scribeLine').textContent = 'The scribe notes: ' + scribeQuip();
+      }
+      function buildStatRow() {
+        const row = $('statRow'); row.innerHTML = '';
+        for (const k of STATS)
+        {
+          const d = document.createElement('div'); d.className = 'stat'; d.dataset.k = k;
+          d.innerHTML = `${SIGILS[ k ]}<div class="bar"><i></i></div><div class="slabel">${STATNAMES[ k ]}</div>`;
+          row.appendChild(d);
+        }
+      }
+      function renderChron() {
+        const list = $('chronList'); list.innerHTML = '';
+        if (!S) return;
+        const entries = S.chron;
+        const capped = entries.length > CHRON_RENDER_CAP;
+        const shown = capped ? entries.slice(-CHRON_RENDER_CAP) : entries;
+        if (capped)
+        {
+          const n = document.createElement('div'); n.className = 'chronNote';
+          n.textContent = '… ' + (entries.length - CHRON_RENDER_CAP) + ' earlier entries rest in the archive …';
+          list.appendChild(n);
+        }
+        const years = {};
+        shown.forEach(c => { (years[ c.y ] = years[ c.y ] || []).push(c); });
+        Object.keys(years).sort((a, b) => a - b).forEach(y => {
+          const h = document.createElement('div'); h.className = 'cy'; h.textContent = 'Year ' + y;
+          list.appendChild(h);
+          years[ y ].forEach(c => {
+            const d = document.createElement('div'); d.className = 'ce' + (c.aside ? ' aside' : ''); d.textContent = c.t;
+            list.appendChild(d);
+          });
+        });
+      }
+      function renderCourt() {
+        const list = $('courtList'); list.innerHTML = '';
+        if (!S.chars.length) { list.innerHTML = '<div class="fe" style="padding:1rem 0">No faces yet; the hall is quiet.</div>'; return; }
+        S.chars.forEach(a => {
+          const sw = a.standing >= 2 ? 'devoted to the king' : a.standing === 1 ? 'well disposed' : a.standing === 0 ? 'unreadable' : a.standing === -1 ? 'coolly disposed' : a.standing <= -3 ? 'openly embittered' : 'nursing a grievance';
+          const d = document.createElement('div'); d.className = 'face';
+          const hist = (a.hist || []).map(h => 'Year ' + h.y + ' — ' + h.t).join('. ');
+          d.innerHTML = `<div class="fp">${portraitSVG(a)}</div><div><b>${esc(a.name)}</b><div class="ftr">${esc(a.title || '')}</div><div class="ftr"><i>${esc(a.trait)}</i> · ${sw}</div>${hist ? `<div class="fe">${esc(hist)}.</div>` : ''}</div>`;
+          list.appendChild(d);
+        });
+      }
+      /* panel focus management */
+      let lastFocus = null;
+      function openPanel(panel, focusBtn) { lastFocus = document.activeElement; panel.classList.add('open'); if (focusBtn) focusBtn.focus(); }
+      function closePanel(panel, returnBtn) { panel.classList.remove('open'); if (returnBtn) returnBtn.focus(); lastFocus = null; }
+      function openChron() { if (!S) return; openPanel($('chronicle'), $('chronClose')); S.flags.readChron = 1; checkAch(); }
+      function closeChron() { closePanel($('chronicle'), $('chronTab')); }
+      function openRealm() { if (!S) return; renderMap(); openPanel($('realmP'), $('realmClose')); S.flags.sawMap = 1; checkAch(); }
+      function closeRealm() { closePanel($('realmP'), $('realmTab')); }
+      function openCourt() { if (!S) return; renderCourt(); $('court').hidden = false; $('courtClose').focus(); S.flags.sawFaces = 1; checkAch(); }
+      function closeCourt() { $('court').hidden = true; if ($('chronTab')) $('chronTab').focus(); }
+
+      /* ============ §11 INPUT ============ */
+      (function initDrag() {
+        const card = $('card'), ghost = $('ghost');
+        let x0 = null, dragging = false;
+        card.addEventListener('pointerdown', e => {
+          if (e.button !== 0 && e.pointerType === 'mouse') return;
+          if (PHASE !== 'choose' || !EV || !EV.ch || EV.ch.length !== 2) return;
+          if (e.target.closest('.choice')) return;
+          x0 = e.clientX; dragging = true;
+          try { card.setPointerCapture(e.pointerId); } catch (err) { }
+          card.classList.add('drag');
+        });
+        card.addEventListener('pointermove', e => {
+          if (!dragging) return;
+          const dx = e.clientX - x0;
+          card.style.transform = `translateX(${dx}px) rotate(${(dx * 0.04).toFixed(2)}deg)`;
+          if (Math.abs(dx) > 60)
+          {
+            ghost.textContent = dx > 0 ? EV.ch[ 1 ].label : EV.ch[ 0 ].label;
+            ghost.classList.add('show');
+            ghost.style.left = dx < 0 ? '6%' : 'auto'; ghost.style.right = dx > 0 ? '6%' : 'auto';
+          } else ghost.classList.remove('show');
+        });
+        function up(e) {
+          if (!dragging) return;
+          dragging = false; card.classList.remove('drag'); ghost.classList.remove('show');
+          const dx = e.clientX - x0;
+          if (dx > 110) { card.style.transform = 'translateX(120vw) rotate(20deg)'; setTimeout(() => choose(1), 180); }
+          else if (dx < -110) { card.style.transform = 'translateX(-120vw) rotate(-20deg)'; setTimeout(() => choose(0), 180); }
+          else card.style.transform = '';
+        }
+        card.addEventListener('pointerup', up);
+        card.addEventListener('pointercancel', up);
+      })();
+      function panelsBusy() { return !$('prologue').hidden || !$('memorial').hidden || !$('yearEnd').hidden || !$('court').hidden || !$('errVeil').hidden; }
+      document.addEventListener('keydown', e => {
+        if (!$('prologue').hidden || !$('errVeil').hidden) return;
+        if (e.key === 'Escape') { closeChron(); closeRealm(); closeCourt(); return; }
+        if (!$('memorial').hidden) return;
+        if (PHASE === 'outcome' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onContinue(); return; }
+        if (PHASE === 'choose')
+        {
+          if (e.key === 'ArrowLeft' || e.key === '1') { e.preventDefault(); choose(0); }
+          else if (e.key === 'ArrowRight' || e.key === '2') { e.preventDefault(); choose(1); }
+          else if (/^[3-9]$/.test(e.key)) choose(parseInt(e.key, 10) - 1);
+        }
+        if (panelsBusy()) return;
+        if (e.key === 'c' || e.key === 'C') { $('chronicle').classList.contains('open') ? closeChron() : openChron(); }
+        else if (e.key === 'r' || e.key === 'R') { $('realmP').classList.contains('open') ? closeRealm() : openRealm(); }
+        else if (e.key === 'f' || e.key === 'F') { openCourt(); }
+      });
+      /* lifecycle: save on exit, manage audio on tab switch */
+      window.addEventListener('beforeunload', () => { try { saveGame(); } catch (e) { } });
+      document.addEventListener('visibilitychange', () => {
+        if (!AU.ctx) return;
+        try
+        {
+          if (document.hidden) { if (AU.ctx.state === 'running') AU.ctx.suspend(); }
+          else if (AU.on) { AU.ctx.resume(); }
+        } catch (e) { }
+      });
+
+      /* ============ §12 INIT ============ */
+      function prepPrologue() {
+        freshGame(); endHandled = false;
+        $('proText').innerHTML = `A king is dead of the winter fever; the bells have barely cooled. You are <b>${esc(kingName())}</b>, anointed this dawn upon the old stone, sovereign of <b>${esc(S.kingdom)}</b> — its fields, its fools, its troubles not yet arrived. Choose how the throne finds you, then face what it finds for you. Petitioners will come. They always come. Say yes, and something breaks; say no, and something else does.`;
+        $('proProp').textContent = 'At the coronation, a wisewoman speaks from the back of the crowd: ' + S.prop.text;
+        $('writNo').textContent = 'WRIT No. ' + ((Date.now() % 9000) + 1000) + ' · v' + VERSION;
+        const sc = $('scens'); sc.innerHTML = '';
+        SCENARIOS.forEach((s, i) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'scen' + (i === selScen ? ' sel' : '');
+          b.setAttribute('aria-pressed', i === selScen ? 'true' : 'false');
+          b.innerHTML = `<b>${esc(s.n)}</b><span>${esc(s.d)}</span><span class="scenMod">${Object.entries(s.mod).map(([ k, v ]) => (v > 0 ? '+' : '') + v + ' ' + STATNAMES[ k ]).join(' · ')}</span>`;
+          b.addEventListener('click', () => { selScen = i;[ ...sc.children ].forEach((c, j) => { c.classList.toggle('sel', j === i); c.setAttribute('aria-pressed', j === i ? 'true' : 'false'); }); });
+          sc.appendChild(b);
+        });
+        const hasSave = !!loadGame();
+        $('btnContinue').hidden = !hasSave;
+        $('btnStart').textContent = hasSave ? 'New Dynasty' : 'Take the Throne';
+        $('prologue').hidden = false;
+        $('btnStart').focus();
+      }
+      $('btnStart').addEventListener('click', () => {
+        actx(); startAmb();
+        applyScen(selScen);
+        $('prologue').hidden = true; endHandled = false;
+        renderHeader(); renderChron(); clearSave(); saveGame();
+        showNext();
+      });
+      $('btnContinue').addEventListener('click', () => {
+        const d = loadGame();
+        if (!d) { toast('No reign is found in the archive.'); return; }
+        actx(); startAmb();
+        S = d; _s = (typeof S.rs === 'number') ? S.rs >>> 0 || 1 : 1; endHandled = false;
+        $('prologue').hidden = true;
+        $('mainArea').setAttribute('data-letter', S.kingdom || 'V');
+        renderHeader(); renderChron(); showNext();
+      });
+      $('btnYear').addEventListener('click', () => { if (!$('yearEnd').hidden) { $('yearEnd').hidden = true; showNext(); } });
+      $('btnAgain').addEventListener('click', () => {
+        if (S.heir) { $('memorial').hidden = true; succession(); }
+        else { $('memorial').hidden = true; prepPrologue(); }
+      });
+      $('cont').addEventListener('click', onContinue);
+      $('btnChron').addEventListener('click', openChron);
+      $('chronTab').addEventListener('click', openChron);
+      $('chronClose').addEventListener('click', closeChron);
+      $('chronCopy').addEventListener('click', () => {
+        if (!S) return;
+        const txt = 'THE CHRONICLE OF ' + S.kingdom.toUpperCase() + '\n\n' + S.chron.filter(c => !c.aside).map(c => c.y + '. ' + c.t).join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText)
+        {
+          navigator.clipboard.writeText(txt).then(() => toast('The chronicle is copied.')).catch(() => toast('The ink would not copy.'));
+        } else toast('The ink would not copy.');
+      });
+      $('btnRealm').addEventListener('click', openRealm);
+      $('realmTab').addEventListener('click', openRealm);
+      $('realmClose').addEventListener('click', closeRealm);
+      $('btnCourt').addEventListener('click', openCourt);
+      $('courtClose').addEventListener('click', closeCourt);
+      $('btnSound').addEventListener('click', () => {
+        AU.on = !AU.on;
+        const b = $('btnSound');
+        b.textContent = 'Sound · ' + (AU.on ? 'on' : 'off');
+        b.setAttribute('aria-pressed', AU.on ? 'true' : 'false');
+        if (AU.on) { actx(); startAmb(); } else stopAmbNodes();
+      });
+      buildStatRow();
+      prepPrologue();
+    })();
+  </script>
+</body>
+
+</html>
